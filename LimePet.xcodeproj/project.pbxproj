@@ -1,0 +1,304 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		C20000010000000000000001 /* LimePetApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000020000000000000001 /* LimePetApp.swift */; };
+		C20000010000000000000002 /* PetRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000020000000000000002 /* PetRuntime.swift */; };
+		C20000010000000000000003 /* PetIPCClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000020000000000000003 /* PetIPCClient.swift */; };
+		C20000010000000000000004 /* CompanionProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000020000000000000004 /* CompanionProtocol.swift */; };
+		C20000010000000000000005 /* PetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000020000000000000005 /* PetView.swift */; };
+		C20000010000000000000006 /* PetPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000020000000000000007 /* PetPlacement.swift */; };
+		C20000010000000000000007 /* PetCharacterLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000020000000000000008 /* PetCharacterLibrary.swift */; };
+		C20000010000000000000008 /* PetCharacterRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000020000000000000009 /* PetCharacterRenderer.swift */; };
+		C20000010000000000000009 /* character-library.json in Resources */ = {isa = PBXBuildFile; fileRef = C2000002000000000000000A /* character-library.json */; };
+		C2000001000000000000000A /* dewy-lime-shadow.png in Resources */ = {isa = PBXBuildFile; fileRef = C2000002000000000000000B /* dewy-lime-shadow.png */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		C20000020000000000000001 /* LimePetApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimePetApp.swift; sourceTree = "<group>"; };
+		C20000020000000000000002 /* PetRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetRuntime.swift; sourceTree = "<group>"; };
+		C20000020000000000000003 /* PetIPCClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetIPCClient.swift; sourceTree = "<group>"; };
+		C20000020000000000000004 /* CompanionProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionProtocol.swift; sourceTree = "<group>"; };
+		C20000020000000000000005 /* PetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetView.swift; sourceTree = "<group>"; };
+		C20000020000000000000006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C20000020000000000000007 /* PetPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetPlacement.swift; sourceTree = "<group>"; };
+		C20000020000000000000008 /* PetCharacterLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetCharacterLibrary.swift; sourceTree = "<group>"; };
+		C20000020000000000000009 /* PetCharacterRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetCharacterRenderer.swift; sourceTree = "<group>"; };
+		C2000002000000000000000A /* character-library.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "character-library.json"; sourceTree = "<group>"; };
+		C2000002000000000000000B /* dewy-lime-shadow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "dewy-lime-shadow.png"; sourceTree = "<group>"; };
+		C20000030000000000000001 /* Lime Pet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Lime Pet.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C20000040000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		C20000050000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				C20000050000000000000002 /* LimePet */,
+				C20000050000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C20000050000000000000002 /* LimePet */ = {
+			isa = PBXGroup;
+			children = (
+				C20000020000000000000001 /* LimePetApp.swift */,
+				C20000020000000000000002 /* PetRuntime.swift */,
+				C20000020000000000000003 /* PetIPCClient.swift */,
+				C20000020000000000000004 /* CompanionProtocol.swift */,
+				C20000020000000000000005 /* PetView.swift */,
+				C20000020000000000000007 /* PetPlacement.swift */,
+				C20000020000000000000008 /* PetCharacterLibrary.swift */,
+				C20000020000000000000009 /* PetCharacterRenderer.swift */,
+				C20000050000000000000004 /* Resources */,
+				C20000020000000000000006 /* Info.plist */,
+			);
+			path = LimePet;
+			sourceTree = "<group>";
+		};
+		C20000050000000000000004 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				C2000002000000000000000A /* character-library.json */,
+				C2000002000000000000000B /* dewy-lime-shadow.png */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		C20000050000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C20000030000000000000001 /* Lime Pet.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		C20000060000000000000001 /* LimePet */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C20000080000000000000001 /* Build configuration list for PBXNativeTarget "LimePet" */;
+			buildPhases = (
+				C20000070000000000000001 /* Sources */,
+				C20000040000000000000001 /* Frameworks */,
+				C20000070000000000000002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LimePet;
+			productName = LimePet;
+			productReference = C20000030000000000000001 /* Lime Pet.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C20000090000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					C20000060000000000000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = C20000080000000000000002 /* Build configuration list for PBXProject "LimePet" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				zh_CN,
+			);
+			mainGroup = C20000050000000000000001;
+			productRefGroup = C20000050000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C20000060000000000000001 /* LimePet */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C20000070000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C20000010000000000000009 /* character-library.json in Resources */,
+				C2000001000000000000000A /* dewy-lime-shadow.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		C20000070000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C20000010000000000000001 /* LimePetApp.swift in Sources */,
+				C20000010000000000000002 /* PetRuntime.swift in Sources */,
+				C20000010000000000000003 /* PetIPCClient.swift in Sources */,
+				C20000010000000000000004 /* CompanionProtocol.swift in Sources */,
+				C20000010000000000000005 /* PetView.swift in Sources */,
+				C20000010000000000000006 /* PetPlacement.swift in Sources */,
+				C20000010000000000000007 /* PetCharacterLibrary.swift in Sources */,
+				C20000010000000000000008 /* PetCharacterRenderer.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		C2000000A000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD)";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		C2000000A000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD)";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		C2000000A000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LimePet/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lime.pet;
+				PRODUCT_NAME = "Lime Pet";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		C2000000A000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LimePet/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lime.pet;
+				PRODUCT_NAME = "Lime Pet";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C20000080000000000000001 /* Build configuration list for PBXNativeTarget "LimePet" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C2000000A000000000000003 /* Debug */,
+				C2000000A000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C20000080000000000000002 /* Build configuration list for PBXProject "LimePet" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C2000000A000000000000001 /* Debug */,
+				C2000000A000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = C20000090000000000000001 /* Project object */;
+}

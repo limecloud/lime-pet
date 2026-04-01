@@ -1,0 +1,798 @@
+import AppKit
+import Combine
+import SwiftUI
+
+private let petTapThreshold: CGFloat = 4
+
+@MainActor
+final class PetSceneModel: ObservableObject {
+    @Published var state: PetState = .walking
+    @Published var bubbleText: String?
+    @Published var isFacingRight = true
+    @Published var isConnected = false
+    @Published var connectionLabel = "等待连接"
+    @Published var modeLabel = "中央巡航"
+    @Published var character: PetCharacterTheme = .fallback
+    @Published var isDragging = false
+    @Published var isMoving = true
+    @Published var bodyBob: CGFloat = 0
+    @Published var bodyStretch: CGFloat = 1
+    @Published var eyeOpenScale: CGFloat = 1
+    @Published var tailAngle: Double = 0
+    @Published var haloPulse: Double = 0
+    @Published var footPhase: Double = 0
+    @Published var moodGlow: Double = 0
+    @Published var interactionPulse: CGFloat = 0
+    @Published var headTilt: Double = 0
+    @Published var gazeOffset: CGFloat = 0
+    @Published var earLift: CGFloat = 0
+    @Published var whiskerSwing: Double = 0
+    @Published var mouthCurve: CGFloat = 0.5
+
+    private var bubbleHideTask: Task<Void, Never>?
+    private var animationTime: Double = 0
+    private var blinkCountdown = PetCharacterTheme.fallback.motion.randomBlinkInterval()
+    private var blinkFramesRemaining = 0
+    private var perch: PetPerch = .center
+
+    func apply(state: PetState) {
+        self.state = state
+        refreshLabels(isMoving: isMoving)
+    }
+
+    func updatePerch(_ perch: PetPerch) {
+        self.perch = perch
+        refreshLabels(isMoving: isMoving)
+    }
+
+    func updateCharacter(_ character: PetCharacterTheme) {
+        self.character = character
+        blinkCountdown = character.motion.randomBlinkInterval()
+    }
+
+    func showBubble(_ text: String, autoHideMs: Int? = 1800) {
+        bubbleHideTask?.cancel()
+        bubbleText = text
+
+        guard let autoHideMs, autoHideMs > 0 else { return }
+        bubbleHideTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(autoHideMs) * 1_000_000)
+            guard !Task.isCancelled else { return }
+            self?.bubbleText = nil
+        }
+    }
+
+    func updateConnection(connected: Bool) {
+        isConnected = connected
+        connectionLabel = connected ? "已连接" : "离线"
+        refreshLabels(isMoving: isMoving)
+    }
+
+    func setDragging(_ dragging: Bool) {
+        isDragging = dragging
+        if dragging {
+            interactionPulse = 1
+            isMoving = false
+        }
+        refreshLabels(isMoving: isMoving && !dragging)
+    }
+
+    func markInteraction() {
+        interactionPulse = 1
+        haloPulse = 0
+    }
+
+    func triggerEdgeBounce() {
+        interactionPulse = 1
+    }
+
+    func advanceFrame(isMoving: Bool) {
+        self.isMoving = isMoving
+        let motion = character.motion
+
+        animationTime += isDragging ? 0.12 : (isMoving ? 0.2 : 0.09)
+        footPhase += isMoving ? 0.38 : 0.12
+
+        let bobAmplitude: CGFloat = (isDragging ? 3.5 : (isMoving ? 7.5 : 2.8)) * CGFloat(motion.bobAmplitudeMultiplier)
+        bodyBob = CGFloat(sin(animationTime * 1.2)) * bobAmplitude
+
+        let stretchAmplitude: CGFloat = (isMoving ? 0.045 : 0.022) * CGFloat(motion.stretchMultiplier)
+        bodyStretch = 1 + CGFloat(cos(animationTime * 1.45)) * stretchAmplitude
+
+        let tailAmplitude = (isDragging ? 10.0 : (isMoving ? 24.0 : 13.0)) * motion.tailSwingMultiplier
+        tailAngle = sin(animationTime * (isMoving ? 2.2 : 1.35)) * tailAmplitude
+
+        headTilt = sin(animationTime * (isMoving ? 1.9 : 0.9)) * (isDragging ? 7.0 : (isMoving ? 4.4 : 1.6))
+        gazeOffset = CGFloat(sin(animationTime * (state == .thinking ? 0.8 : 1.15))) * (state == .thinking ? 3.2 : (isDragging ? 2.1 : 1.6))
+        earLift = CGFloat((sin(animationTime * 1.65) + 1) * 0.5) * (state == .thinking ? 7.0 : (isMoving ? 4.5 : 2.5))
+        whiskerSwing = sin(animationTime * (isMoving ? 2.3 : 1.2)) * (state == .done ? 9.0 : 5.0)
+
+        switch state {
+        case .hidden:
+            mouthCurve = 0
+        case .idle:
+            mouthCurve = isConnected ? 0.28 : -0.08
+        case .walking:
+            mouthCurve = isConnected ? 0.55 : 0.12
+        case .thinking:
+            mouthCurve = 0.45
+        case .done:
+            mouthCurve = 0.92
+        }
+
+        haloPulse += isConnected ? 0.08 : 0.035
+        moodGlow = (sin(haloPulse) + 1) * 0.5
+        interactionPulse = max(0, interactionPulse - (isDragging ? 0.03 : 0.05))
+
+        updateBlink()
+        refreshLabels(isMoving: isMoving)
+    }
+
+    private func updateBlink() {
+        if blinkFramesRemaining > 0 {
+            blinkFramesRemaining -= 1
+            let phase = Double(blinkFramesRemaining) / 6.0
+            eyeOpenScale = max(0.12, CGFloat(phase))
+            return
+        }
+
+        blinkCountdown -= 1
+        eyeOpenScale = 1
+
+        if blinkCountdown <= 0 {
+            blinkFramesRemaining = 6
+            blinkCountdown = character.motion.randomBlinkInterval()
+        }
+    }
+
+    private func refreshLabels(isMoving: Bool) {
+        if isDragging {
+            modeLabel = "拖拽放置"
+            return
+        }
+
+        switch state {
+        case .hidden:
+            modeLabel = "已隐藏"
+        case .idle:
+            modeLabel = isConnected ? perch.restingLabel : "等待连接"
+        case .walking:
+            if isConnected {
+                modeLabel = isMoving ? perch.movingLabel : perch.restingLabel
+            } else {
+                modeLabel = isMoving ? "离线巡航" : "等待连接"
+            }
+        case .thinking:
+            modeLabel = perch.thinkingLabel
+        case .done:
+            modeLabel = perch.doneLabel
+        }
+    }
+}
+
+final class PetWindow: NSWindow {
+    override var canBecomeKey: Bool { false }
+    override var canBecomeMain: Bool { false }
+}
+
+@MainActor
+final class PetCoordinator: NSObject {
+    let sceneModel = PetSceneModel()
+
+    private let configuration: LaunchConfiguration
+    private let placementStore = PetPlacementStore.shared
+    private let characterLibrary = PetCharacterLibrary.shared
+    private lazy var ipcClient = PetIPCClient(configuration: configuration, delegate: self)
+
+    private var window: NSWindow?
+    private var movementTimer: Timer?
+    private var statusItem: NSStatusItem?
+    private var characterMenuItems: [NSMenuItem] = []
+    private var dragStartMouseLocation: NSPoint?
+    private var dragMouseOffset: NSPoint?
+    private var ambientDialogueTask: Task<Void, Never>?
+
+    private let petSize = NSSize(width: 260, height: 228)
+    private var currentX: CGFloat = 0
+    private var currentY: CGFloat = 0
+    private var anchorX: CGFloat = 0
+    private var restY: CGFloat = 0
+    private var direction: CGFloat = 1
+    private var currentPerch: PetPerch = .center
+    private var currentCharacter: PetCharacterTheme
+    private var strollFramesRemaining = 0
+    private var pauseFramesRemaining = 0
+    private var lastVisibleState: PetState = .walking
+
+    init(configuration: LaunchConfiguration) {
+        self.configuration = configuration
+        self.currentCharacter = PetCharacterLibrary.shared.selectedCharacter()
+        super.init()
+        sceneModel.updateCharacter(currentCharacter)
+    }
+
+    func start() {
+        setupWindow()
+        setupStatusItem()
+        startMovementLoop()
+        startAmbientDialogueLoop()
+        resetPatrolCycle()
+        ipcClient.connect()
+        sceneModel.showBubble("拖拽我换个位置，轻点我打开 Lime", autoHideMs: 1800)
+    }
+
+    func stop() {
+        movementTimer?.invalidate()
+        movementTimer = nil
+        ambientDialogueTask?.cancel()
+        if let screen = window?.screen ?? NSScreen.main {
+            persistPlacement(on: screen)
+        }
+        ipcClient.disconnect()
+    }
+
+    @objc private func reconnectIPC() {
+        ipcClient.reconnect()
+    }
+
+    @objc private func togglePetVisibility() {
+        if sceneModel.state == .hidden {
+            revealLastVisibleState()
+        } else {
+            applySceneState(.hidden)
+        }
+        updateWindowVisibility()
+    }
+
+    @objc private func recenterPet() {
+        moveToPresetPerch(.center, message: "回到舞台中央啦")
+    }
+
+    @objc private func dockLeft() {
+        moveToPresetPerch(.left, message: PetPerch.left.placementBubble)
+    }
+
+    @objc private func dockCenter() {
+        moveToPresetPerch(.center, message: PetPerch.center.placementBubble)
+    }
+
+    @objc private func dockRight() {
+        moveToPresetPerch(.right, message: PetPerch.right.placementBubble)
+    }
+
+    @objc private func selectCharacter(_ sender: NSMenuItem) {
+        guard
+            let characterId = sender.representedObject as? String,
+            let character = characterLibrary.selectCharacter(id: characterId)
+        else {
+            return
+        }
+
+        applyCharacter(character, announce: true)
+    }
+
+    @objc private func quit() {
+        NSApp.terminate(nil)
+    }
+
+    @objc private func handleMovementTimer(_ timer: Timer) {
+        tick()
+    }
+
+    private func applyCharacter(_ character: PetCharacterTheme, announce: Bool) {
+        currentCharacter = character
+        sceneModel.updateCharacter(character)
+        startAmbientDialogueLoop()
+        refreshCharacterMenuState()
+        updateStatusButtonIcon()
+
+        if announce {
+            sceneModel.markInteraction()
+            sceneModel.showBubble(character.switchBubble, autoHideMs: 1300)
+        }
+    }
+
+    private func refreshCharacterMenuState() {
+        for item in characterMenuItems {
+            let isSelected = (item.representedObject as? String) == currentCharacter.id
+            item.state = isSelected ? .on : .off
+        }
+    }
+
+    private func updateStatusButtonIcon() {
+        guard let button = statusItem?.button else { return }
+        button.image = NSImage(
+            systemSymbolName: currentCharacter.symbols.menuBar,
+            accessibilityDescription: currentCharacter.displayName
+        )
+        button.toolTip = "Lime Pet · \(currentCharacter.displayName)"
+    }
+
+    private func setupWindow() {
+        guard let screen = preferredLaunchScreen() else { return }
+
+        let frame = initialFrame(on: screen)
+        let window = PetWindow(
+            contentRect: frame,
+            styleMask: [.borderless],
+            backing: .buffered,
+            defer: false
+        )
+        window.isOpaque = configuration.debugWindowSurface
+        window.backgroundColor = configuration.debugWindowSurface
+            ? NSColor.systemPink.withAlphaComponent(0.45)
+            : .clear
+        window.level = .statusBar
+        window.hasShadow = configuration.debugWindowSurface
+        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+        window.ignoresMouseEvents = false
+
+        let rootView = PetView(
+            sceneModel: sceneModel,
+            debugWindowSurface: configuration.debugWindowSurface,
+            onDragChanged: { [weak self] value in
+                self?.handleDragChanged(value)
+            },
+            onDragEnded: { [weak self] value in
+                self?.handleDragEnded(value)
+            },
+            onHideRequested: { [weak self] in
+                self?.hidePet()
+            },
+            onQuitRequested: { [weak self] in
+                self?.quit()
+            }
+        )
+
+        let hostingController = NSHostingController(rootView: rootView)
+        hostingController.view.frame = NSRect(origin: .zero, size: petSize)
+        hostingController.view.autoresizingMask = [.width, .height]
+        window.contentViewController = hostingController
+        window.setContentSize(petSize)
+        window.orderFrontRegardless()
+        self.window = window
+    }
+
+    private func preferredLaunchScreen() -> NSScreen? {
+        if let mainScreen = NSScreen.main {
+            return mainScreen
+        }
+        if let pointerScreen = screen(containing: NSEvent.mouseLocation) {
+            return pointerScreen
+        }
+        return NSScreen.screens.first
+    }
+
+    private func setupStatusItem() {
+        let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        self.statusItem = statusItem
+        updateStatusButtonIcon()
+
+        let menu = NSMenu()
+
+        let reconnectItem = NSMenuItem(title: "重连 Lime", action: #selector(reconnectIPC), keyEquivalent: "r")
+        reconnectItem.target = self
+        menu.addItem(reconnectItem)
+
+        let recenterItem = NSMenuItem(title: "回到屏幕中央", action: #selector(recenterPet), keyEquivalent: "c")
+        recenterItem.target = self
+        menu.addItem(recenterItem)
+
+        let appearanceItem = NSMenuItem(title: "切换外观", action: nil, keyEquivalent: "")
+        let appearanceMenu = NSMenu(title: "切换外观")
+        for character in characterLibrary.characters {
+            let item = NSMenuItem(title: character.displayName, action: #selector(selectCharacter(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = character.id
+            item.image = NSImage(
+                systemSymbolName: character.symbols.menuBar,
+                accessibilityDescription: character.displayName
+            )
+            appearanceMenu.addItem(item)
+            characterMenuItems.append(item)
+        }
+        menu.addItem(appearanceItem)
+        menu.setSubmenu(appearanceMenu, for: appearanceItem)
+
+        menu.addItem(NSMenuItem.separator())
+
+        let dockLeftItem = NSMenuItem(title: "停靠左侧", action: #selector(dockLeft), keyEquivalent: "1")
+        dockLeftItem.target = self
+        menu.addItem(dockLeftItem)
+
+        let dockCenterItem = NSMenuItem(title: "停靠中间", action: #selector(dockCenter), keyEquivalent: "2")
+        dockCenterItem.target = self
+        menu.addItem(dockCenterItem)
+
+        let dockRightItem = NSMenuItem(title: "停靠右侧", action: #selector(dockRight), keyEquivalent: "3")
+        dockRightItem.target = self
+        menu.addItem(dockRightItem)
+
+        menu.addItem(NSMenuItem.separator())
+
+        let toggleItem = NSMenuItem(title: "显示 / 隐藏桌宠", action: #selector(togglePetVisibility), keyEquivalent: "h")
+        toggleItem.target = self
+        menu.addItem(toggleItem)
+
+        menu.addItem(NSMenuItem.separator())
+
+        let quitItem = NSMenuItem(title: "退出 Lime Pet", action: #selector(quit), keyEquivalent: "q")
+        quitItem.target = self
+        menu.addItem(quitItem)
+
+        refreshCharacterMenuState()
+        statusItem.menu = menu
+    }
+
+    private func startMovementLoop() {
+        movementTimer?.invalidate()
+        movementTimer = Timer.scheduledTimer(
+            timeInterval: 1.0 / 30.0,
+            target: self,
+            selector: #selector(handleMovementTimer(_:)),
+            userInfo: nil,
+            repeats: true
+        )
+    }
+
+    private func startAmbientDialogueLoop() {
+        ambientDialogueTask?.cancel()
+        ambientDialogueTask = Task { [weak self] in
+            while !Task.isCancelled {
+                let delayNanoseconds = self?.currentCharacter.motion.randomAmbientDelayNanoseconds() ?? 13_000_000_000
+                try? await Task.sleep(nanoseconds: delayNanoseconds)
+                guard !Task.isCancelled else { return }
+                await MainActor.run {
+                    self?.emitAmbientBubbleIfNeeded()
+                }
+            }
+        }
+    }
+
+    private func initialFrame(on screen: NSScreen) -> NSRect {
+        restorePlacement(on: screen)
+        restY = floorY(for: screen)
+        currentY = restY
+        return NSRect(x: currentX, y: currentY, width: petSize.width, height: petSize.height)
+    }
+
+    private func restorePlacement(on screen: NSScreen) {
+        if let restored = placementStore.restoreOriginX(on: screen, petSize: petSize) {
+            currentPerch = restored.perch
+            anchorX = restored.originX
+        } else {
+            currentPerch = .center
+            anchorX = PetPerch.presetOriginX(on: screen, petSize: petSize, perch: .center)
+        }
+
+        currentX = anchorX
+        direction = currentPerch == .right ? -1 : 1
+        sceneModel.updatePerch(currentPerch)
+    }
+
+    private func floorY(for screen: NSScreen) -> CGFloat {
+        screen.visibleFrame.minY + 10
+    }
+
+    private func screen(containing point: NSPoint) -> NSScreen? {
+        NSScreen.screens.first { NSMouseInRect(point, $0.frame, false) }
+    }
+
+    private func clampAnchor(on screen: NSScreen) {
+        let visible = screen.visibleFrame
+        anchorX = min(max(anchorX, visible.minX + 4), visible.maxX - petSize.width - 4)
+    }
+
+    private func clampPosition(on screen: NSScreen) {
+        let visible = screen.visibleFrame
+        currentX = min(max(currentX, visible.minX + 4), visible.maxX - petSize.width - 4)
+        currentY = min(max(currentY, visible.minY + 6), visible.maxY - petSize.height - 4)
+    }
+
+    private func roamingBounds(on screen: NSScreen) -> ClosedRange<CGFloat> {
+        clampAnchor(on: screen)
+        let visible = screen.visibleFrame
+        let minX = visible.minX + 4
+        let maxX = visible.maxX - petSize.width - 4
+        let roamRadius = currentPerch.roamingRadius * CGFloat(currentCharacter.motion.roamRadiusMultiplier)
+        let lower = max(minX, anchorX - roamRadius)
+        let upper = min(maxX, anchorX + roamRadius)
+        return lower...max(lower, upper)
+    }
+
+    private func resetPatrolCycle(startPaused: Bool = false) {
+        strollFramesRemaining = startPaused ? 0 : nextStrollFrameCount()
+        pauseFramesRemaining = startPaused ? nextPauseFrameCount() : 0
+    }
+
+    private func nextStrollFrameCount() -> Int {
+        switch currentPerch {
+        case .center:
+            return Int.random(in: 160...260)
+        case .left, .right:
+            return Int.random(in: 90...170)
+        }
+    }
+
+    private func nextPauseFrameCount() -> Int {
+        switch currentPerch {
+        case .center:
+            return Int.random(in: 32...86)
+        case .left, .right:
+            return Int.random(in: 58...128)
+        }
+    }
+
+    private func patrolSpeed() -> CGFloat {
+        let multiplier = CGFloat(currentCharacter.motion.walkSpeedMultiplier)
+        if !sceneModel.isConnected {
+            return (currentPerch == .center ? 1.5 : 1.2) * multiplier
+        }
+        return (currentPerch == .center ? 2.8 : 1.95) * multiplier
+    }
+
+    private func persistPlacement(on screen: NSScreen) {
+        placementStore.save(originX: anchorX, perch: currentPerch, on: screen, petSize: petSize)
+    }
+
+    private func moveToPresetPerch(_ perch: PetPerch, message: String) {
+        guard let screen = window?.screen ?? NSScreen.main else { return }
+        currentPerch = perch
+        anchorX = PetPerch.presetOriginX(on: screen, petSize: petSize, perch: perch)
+        currentX = anchorX
+        restY = floorY(for: screen)
+        currentY = restY + 18
+        direction = perch == .right ? -1 : 1
+        sceneModel.updatePerch(perch)
+        sceneModel.markInteraction()
+        sceneModel.showBubble(message, autoHideMs: 1200)
+        resetPatrolCycle(startPaused: true)
+        persistPlacement(on: screen)
+        window?.setFrameOrigin(NSPoint(x: currentX, y: currentY))
+    }
+
+    private func hidePet() {
+        applySceneState(.hidden)
+        updateWindowVisibility()
+    }
+
+    private func applySceneState(_ state: PetState) {
+        if state != .hidden {
+            lastVisibleState = state
+        }
+        sceneModel.apply(state: state)
+    }
+
+    private func revealLastVisibleState() {
+        applySceneState(lastVisibleState == .hidden ? .walking : lastVisibleState)
+    }
+
+    private func emitAmbientBubbleIfNeeded() {
+        guard sceneModel.state != .hidden else { return }
+        guard !sceneModel.isDragging else { return }
+        guard sceneModel.bubbleText == nil else { return }
+
+        let preferredLines = currentCharacter.dialogue.lines(for: sceneModel.state, isConnected: sceneModel.isConnected)
+        let fallbackLines: [String]
+        let fallbackText: String
+        switch sceneModel.state {
+        case .hidden:
+            return
+        case .idle:
+            fallbackLines = sceneModel.isConnected ? currentPerch.ambientIdleLines : []
+            fallbackText = sceneModel.isConnected ? "我就在这里待命" : "我还在等 Lime 连上来"
+        case .walking:
+            fallbackLines = sceneModel.isConnected ? currentPerch.ambientWalkingLines : []
+            fallbackText = sceneModel.isConnected ? "我先去巡一圈" : "离线时我也会在这里等你"
+        case .thinking:
+            fallbackLines = ["我先在旁边陪它想一会", "有进展我会先冒泡提醒你"]
+            fallbackText = "我先陪它想想"
+        case .done:
+            fallbackLines = ["刚刚那件事已经完成啦", "如果你愿意，我还能继续帮你叫出 Lime"]
+            fallbackText = "任务已经完成啦"
+        }
+
+        let text = (preferredLines + fallbackLines).randomElement() ?? fallbackText
+        sceneModel.showBubble(text, autoHideMs: 1500)
+    }
+
+    private func tick() {
+        guard let window else { return }
+        guard let screen = window.screen ?? NSScreen.main else { return }
+
+        updateWindowVisibility()
+        guard sceneModel.state != .hidden else { return }
+
+        let visible = screen.visibleFrame
+        restY = floorY(for: screen)
+
+        var isMoving = false
+        let canPatrol = sceneModel.state == .walking && !sceneModel.isDragging
+
+        if canPatrol {
+            let bounds = roamingBounds(on: screen)
+
+            if pauseFramesRemaining > 0 {
+                pauseFramesRemaining -= 1
+                currentX += (anchorX - currentX) * 0.04
+                if pauseFramesRemaining == 0 {
+                    strollFramesRemaining = nextStrollFrameCount()
+                }
+            } else {
+                if strollFramesRemaining <= 0 {
+                    pauseFramesRemaining = nextPauseFrameCount()
+                } else {
+                    isMoving = true
+                    strollFramesRemaining -= 1
+                    currentX += direction * patrolSpeed()
+
+                    if currentX <= bounds.lowerBound {
+                        currentX = bounds.lowerBound
+                        direction = 1
+                        currentY = min(currentY + 14, visible.maxY - petSize.height - 8)
+                        sceneModel.triggerEdgeBounce()
+                        resetPatrolCycle(startPaused: true)
+                    } else if currentX >= bounds.upperBound {
+                        currentX = bounds.upperBound
+                        direction = -1
+                        currentY = min(currentY + 14, visible.maxY - petSize.height - 8)
+                        sceneModel.triggerEdgeBounce()
+                        resetPatrolCycle(startPaused: true)
+                    } else if strollFramesRemaining == 0 {
+                        pauseFramesRemaining = nextPauseFrameCount()
+                    }
+                }
+            }
+
+            sceneModel.isFacingRight = direction > 0
+        } else {
+            currentX += (anchorX - currentX) * 0.08
+        }
+
+        sceneModel.advanceFrame(isMoving: isMoving)
+
+        if !sceneModel.isDragging {
+            currentY += (restY - currentY) * 0.18
+        }
+
+        clampPosition(on: screen)
+        window.setFrameOrigin(NSPoint(x: currentX, y: currentY))
+    }
+
+    private func updateWindowVisibility() {
+        guard let window else { return }
+        if sceneModel.state == .hidden {
+            window.orderOut(nil)
+        } else if !window.isVisible {
+            window.orderFrontRegardless()
+        }
+    }
+
+    private func handleDragChanged(_ value: DragGesture.Value) {
+        guard let window else { return }
+        let mouseLocation = NSEvent.mouseLocation
+
+        if dragStartMouseLocation == nil {
+            dragStartMouseLocation = mouseLocation
+            dragMouseOffset = NSPoint(
+                x: mouseLocation.x - window.frame.origin.x,
+                y: mouseLocation.y - window.frame.origin.y
+            )
+        }
+
+        guard let dragStartMouseLocation else { return }
+        let distance = hypot(
+            mouseLocation.x - dragStartMouseLocation.x,
+            mouseLocation.y - dragStartMouseLocation.y
+        )
+        if distance < petTapThreshold {
+            return
+        }
+
+        if !sceneModel.isDragging {
+            sceneModel.setDragging(true)
+            sceneModel.showBubble("把我放到喜欢的位置", autoHideMs: 1000)
+        }
+
+        guard let dragMouseOffset else { return }
+        currentX = mouseLocation.x - dragMouseOffset.x
+        currentY = mouseLocation.y - dragMouseOffset.y
+
+        if let targetScreen = screen(containing: mouseLocation) ?? window.screen ?? NSScreen.main {
+            clampPosition(on: targetScreen)
+        }
+
+        window.setFrameOrigin(NSPoint(x: currentX, y: currentY))
+    }
+
+    private func handleDragEnded(_ value: DragGesture.Value) {
+        let mouseLocation = NSEvent.mouseLocation
+        let distance: CGFloat
+        if let dragStartMouseLocation {
+            distance = hypot(
+                mouseLocation.x - dragStartMouseLocation.x,
+                mouseLocation.y - dragStartMouseLocation.y
+            )
+        } else {
+            distance = hypot(value.translation.width, value.translation.height)
+        }
+        dragStartMouseLocation = nil
+        dragMouseOffset = nil
+
+        if distance < petTapThreshold {
+            handleTap()
+            return
+        }
+
+        sceneModel.setDragging(false)
+        sceneModel.markInteraction()
+
+        guard let screen = screen(containing: mouseLocation) ?? window?.screen ?? NSScreen.main else { return }
+        clampPosition(on: screen)
+        restY = floorY(for: screen)
+        currentPerch = PetPerch.infer(originX: currentX, on: screen, petSize: petSize)
+        anchorX = currentX
+        currentY = max(currentY, restY + 16)
+        direction = currentPerch == .right ? -1 : 1
+        sceneModel.updatePerch(currentPerch)
+        resetPatrolCycle(startPaused: true)
+        persistPlacement(on: screen)
+        sceneModel.showBubble(currentPerch.placementBubble, autoHideMs: 1300)
+    }
+
+    private func handleTap() {
+        sceneModel.setDragging(false)
+        sceneModel.markInteraction()
+
+        guard sceneModel.isConnected else {
+            sceneModel.showBubble("Lime 还没连上，我先等它", autoHideMs: 1400)
+            ipcClient.reconnect()
+            return
+        }
+
+        sceneModel.showBubble("正在唤起 Lime…", autoHideMs: 1200)
+        resetPatrolCycle(startPaused: true)
+        ipcClient.sendTapEvents()
+    }
+}
+
+extension PetCoordinator: PetIPCClientDelegate {
+    func petIPCClient(_ client: PetIPCClient, didChange status: PetIPCConnectionStatus) {
+        switch status {
+        case .connected:
+            sceneModel.updateConnection(connected: true)
+            if sceneModel.bubbleText == nil {
+                sceneModel.showBubble("已连接到 Lime", autoHideMs: 1400)
+            }
+        case .disconnected(let reason):
+            sceneModel.updateConnection(connected: false)
+            applySceneState(.idle)
+            if sceneModel.bubbleText == nil {
+                sceneModel.showBubble(reason, autoHideMs: 1400)
+            }
+        }
+    }
+
+    func petIPCClient(_ client: PetIPCClient, didReceive command: IncomingCommand) {
+        switch command {
+        case .show:
+            revealLastVisibleState()
+            updateWindowVisibility()
+        case .hide:
+            applySceneState(.hidden)
+            updateWindowVisibility()
+        case .stateChanged(let state):
+            applySceneState(state)
+            if state == .thinking {
+                sceneModel.showBubble("Lime 正在思考…", autoHideMs: 1100)
+            } else if state == .done {
+                sceneModel.showBubble("任务完成啦", autoHideMs: 1200)
+            }
+            updateWindowVisibility()
+        case .showBubble(let text, let autoHideMs):
+            sceneModel.showBubble(text, autoHideMs: autoHideMs)
+        case .openChatAnchor:
+            sceneModel.showBubble("点我打开 Lime 对话", autoHideMs: 1600)
+        }
+    }
+}

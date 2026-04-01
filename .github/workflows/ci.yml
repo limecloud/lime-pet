@@ -1,0 +1,51 @@
+name: Quality
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-macos:
+    name: Build And Package
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare scripts
+        run: chmod +x scripts/*.sh
+
+      - name: Show toolchain
+        run: |
+          swift --version
+          xcodebuild -version
+
+      - name: Build debug app
+        run: ./scripts/build-dev-app.sh
+
+      - name: Verify debug app bundle
+        run: |
+          test -x "dist/Lime Pet.app/Contents/MacOS/LimePet"
+          test -f "dist/Lime Pet.app/Contents/Info.plist"
+
+      - name: Build release package preview
+        run: ./scripts/package-release.sh --version "0.0.0-ci" --build-number "${{ github.run_number }}"
+
+      - name: Upload macOS preview artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lime-pet-macos-preview
+          path: |
+            dist/release/*.zip
+            dist/release/*.sha256

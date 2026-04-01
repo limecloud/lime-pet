@@ -1,0 +1,125 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "发布版本，例如 v0.1.0"
+        required: true
+        default: "v0.1.0"
+      source_ref:
+        description: "构建所用 Git ref，例如 main 或某个 commit/tag"
+        required: false
+        default: "main"
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event.inputs.version || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package-macos:
+    name: Package macOS Release
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.source_ref || github.ref }}
+
+      - name: Prepare scripts
+        run: chmod +x scripts/*.sh
+
+      - name: Show toolchain
+        run: |
+          swift --version
+          xcodebuild -version
+
+      - name: Resolve release metadata
+        id: meta
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            raw_tag="${{ github.event.inputs.version }}"
+          else
+            raw_tag="${{ github.ref_name }}"
+          fi
+
+          if [[ "${raw_tag}" != v* ]]; then
+            raw_tag="v${raw_tag}"
+          fi
+
+          version="${raw_tag#v}"
+
+          echo "tag=${raw_tag}" >> "$GITHUB_OUTPUT"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+          if [[ "${raw_tag}" == *-* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build release package
+        run: ./scripts/package-release.sh --version "${{ steps.meta.outputs.version }}" --build-number "${{ github.run_number }}"
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lime-pet-${{ steps.meta.outputs.tag }}-macos
+          path: |
+            dist/release/*.zip
+            dist/release/*.sha256
+
+      - name: Generate release notes
+        id: notes
+        shell: bash
+        run: |
+          notes_file="${RUNNER_TEMP}/release-notes.md"
+          if [[ -f "RELEASE_NOTES.md" ]]; then
+            cp "RELEASE_NOTES.md" "${notes_file}"
+          else
+            {
+              echo "## Lime Pet ${{ steps.meta.outputs.tag }}"
+              echo ""
+              echo "- macOS companion app unsigned release bundle"
+              echo "- SwiftPM + app packaging script pipeline"
+              echo "- Version: ${{ steps.meta.outputs.version }}"
+              echo "- Build number: ${{ github.run_number }}"
+            } > "${notes_file}"
+          fi
+          echo "file=${notes_file}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tag="${{ steps.meta.outputs.tag }}"
+          title="Lime Pet ${tag}"
+          target_ref="${{ github.event.inputs.source_ref || github.sha }}"
+          notes_file="${{ steps.notes.outputs.file }}"
+          prerelease_flag=""
+
+          if [[ "${{ steps.meta.outputs.prerelease }}" == "true" ]]; then
+            prerelease_flag="--prerelease"
+          fi
+
+          if gh release view "${tag}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release upload "${tag}" dist/release/* --repo "${GITHUB_REPOSITORY}" --clobber
+          else
+            gh release create "${tag}" dist/release/* \
+              --repo "${GITHUB_REPOSITORY}" \
+              --target "${target_ref}" \
+              --title "${title}" \
+              --notes-file "${notes_file}" \
+              ${prerelease_flag}
+          fi
