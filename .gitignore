@@ -5,3 +5,6 @@ build/
 dist/
 xcuserdata/
 *.xcuserstate
+node_modules/
+target/
+WindowsPet/src-tauri/gen/

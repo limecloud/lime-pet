@@ -1,0 +1,17 @@
+[package]
+name = "lime-pet-windows"
+version = "0.2.0"
+description = "Windows companion shell for Lime Pet"
+authors = ["Lime Team"]
+edition = "2021"
+
+[lib]
+name = "lime_pet_windows_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.5.1", features = [] }
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+tauri = { version = "2.10.3", features = [] }

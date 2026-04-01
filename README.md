@@ -1,6 +1,6 @@
 # Lime Pet
 
-`Lime Pet` 是 `Lime` 的独立 macOS companion app。它负责桌面端的桌宠呈现、移动、点击和轻提示，不承载 Lime 的主会话运行时。
+`Lime Pet` 是 `Lime` 的独立桌面 companion app 仓库。当前仓库包含 macOS 原生 `SwiftUI + AppKit` 壳，以及 Windows `Tauri + WebView` companion 壳；它负责桌面端的桌宠呈现、移动、点击和轻提示，不承载 Lime 的主会话运行时。
 
 ## 当前能力
 
@@ -19,11 +19,13 @@
 - 菜单栏支持重连、回到屏幕中央、左/中/右停靠、显示 / 隐藏桌宠
 - 接收 Lime 发来的 `pet.show` / `pet.hide` / `pet.state_changed` / `pet.show_bubble`
 - GitHub Actions 质量校验与 tag 发布流程
+- Windows companion 预览壳：透明无边框、始终置顶、可拖拽、点击唤起、右键菜单、位置记忆与基础氛围动画
 
 ## 仓库结构
 
 - `LimePet.xcodeproj`：Xcode 工程
 - `LimePet/`：Swift 源码、`Info.plist` 与 `Resources/` 资源目录
+- `WindowsPet/`：Windows companion 子项目，基于 `Tauri v2`
 - `docs/protocol.md`：Companion 协议说明
 - `docs/release.md`：CI/CD 与签名说明
 - `.github/workflows/`：构建与打包工作流
@@ -66,26 +68,55 @@ open "dist/Lime Pet.app"
 本地生成 release zip：
 
 ```bash
-./scripts/package-release.sh --version "0.1.0" --build-number "1"
+./scripts/package-release.sh --version "0.2.0" --build-number "1"
 ```
 
 产物默认输出到：
 
 ```text
-dist/release/LimePet-v0.1.0-macos-unsigned.zip
-dist/release/LimePet-v0.1.0-macos-unsigned.zip.sha256
+dist/release/LimePet-v0.2.0-macos-unsigned.zip
+dist/release/LimePet-v0.2.0-macos-unsigned.zip.sha256
 ```
 
 GitHub Actions 发布策略：
 
 - `ci.yml`
   - 在 `pull_request`、`push main`、`workflow_dispatch` 时执行
-  - 校验 debug `.app` 可构建
-  - 额外打一个 release preview zip，确保发布链路不腐坏
+  - 校验 macOS debug `.app` 可构建
+  - 校验 Windows companion 可打出 installer preview
+  - 额外上传 macOS zip 与 Windows NSIS preview，确保发布链路不腐坏
 - `release.yml`
   - 在推送 `v*` tag 时自动执行
   - 也支持手动 `workflow_dispatch`
-  - 会上传 zip 与 `sha256`，并发布到 GitHub Release
+  - 会同时上传 macOS zip / `sha256` 与 Windows NSIS installer，并发布到 GitHub Release
+
+## Windows 本地开发
+
+Windows 壳位于 `WindowsPet/`，它复用同一套 companion 协议和共享素材，但不复用 macOS 的窗口层代码。
+
+常用命令：
+
+```bash
+cd WindowsPet
+npm install
+npm run build
+```
+
+如果在 Windows 机器上做本地桌宠调试：
+
+```bash
+cd WindowsPet
+npm install
+npm run tauri dev
+```
+
+如果在 Windows 机器上产出 installer：
+
+```bash
+cd WindowsPet
+npm install
+npm run tauri build
+```
 
 ## Companion 连接
 
@@ -108,6 +139,11 @@ open -a "Lime Pet.app" --args \
 
 角色资源库默认从 `LimePet/Resources/character-library.json` 打包进 app bundle；后续如果要扩展更多桌宠皮肤，优先沿用这套 JSON 描述 + Swift 渲染器 + 角色行为参数 + 配件槽位的组合，而不是直接把外观和节奏写死在视图里。
 
-## 未来 Windows 策略
+## 跨平台策略
 
-当前仓库只实现 macOS 壳。未来跨 Windows 时，复用同一套 Companion Protocol，在单独的 Windows 壳里实现窗口、动画和命中，不强行复用 macOS 的窗口层代码。当前 CI/CD 只验证 macOS 产物，Windows 发布链路尚未实现。
+当前仓库采用“同仓双壳”的做法：
+
+- macOS：保留原生 `SwiftUI + AppKit`
+- Windows：新增 `Tauri + WebView` 壳
+- 协议：两侧统一复用 `docs/protocol.md` 定义的 companion WebSocket 协议
+- 资源：Windows 壳通过同步脚本复用主仓的青柠精灵素材，而不是维护第二份角色源图

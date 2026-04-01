@@ -101,7 +101,7 @@
   "event": "pet.ready",
   "payload": {
     "client_id": "lime",
-    "platform": "macos",
+    "platform": "windows",
     "capabilities": [
       "bubble",
       "movement",
@@ -109,7 +109,6 @@
       "drag-reposition",
       "reactive-animations",
       "perch-memory",
-      "dock-presets",
       "ambient-dialogue",
       "character-themes"
     ]
@@ -154,6 +153,9 @@
 ```
 
 ### `pet.ready` capability 说明
+
+- `platform`：当前实现值可以是 `macos` 或 `windows`
+- `capabilities`：允许按具体 companion 壳裁剪，不要求每个平台完全一致
 
 - `bubble`：支持提示气泡
 - `movement`：支持自主移动

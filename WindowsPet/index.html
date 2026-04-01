@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Lime Pet Windows</title>
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body>
+    <main class="pet-shell state-walking disconnected" id="app">
+      <section class="bubble" id="bubble" aria-live="polite"></section>
+
+      <div class="context-menu hidden" id="contextMenu" role="menu">
+        <button class="context-item" data-action="recenter" type="button">回到中央</button>
+        <button class="context-item" data-action="hide" type="button">隐藏桌宠</button>
+        <button class="context-item danger" data-action="quit" type="button">退出 Lime Pet</button>
+      </div>
+
+      <section class="pet-stage" id="petStage">
+        <div class="pet-floor-shadow"></div>
+        <div class="pet-floor-glow"></div>
+        <div class="pet-aura-ring aura-ring-one"></div>
+        <div class="pet-aura-ring aura-ring-two"></div>
+        <div class="pet-ripple ripple-one"></div>
+        <div class="pet-ripple ripple-two"></div>
+
+        <div class="pet-motes pet-motes-soft" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+
+        <div class="pet-motes pet-motes-orbit" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+
+        <div class="pet-sparkles" aria-hidden="true">
+          <span>✦</span>
+          <span>✦</span>
+          <span>✦</span>
+          <span>✦</span>
+        </div>
+
+        <button class="pet-button" id="petButton" type="button" aria-label="Lime Pet">
+          <span class="pet-shimmer"></span>
+          <img
+            class="pet-image"
+            id="petImage"
+            src="/src/assets/shared/dewy-lime-shadow.png"
+            alt="Lime Pet"
+            draggable="false"
+          />
+        </button>
+      </section>
+
+      <footer class="status-bar">
+        <span class="status-pill" id="connectionLabel">等待连接</span>
+        <span class="mode-pill" id="modeLabel">中央巡航</span>
+      </footer>
+    </main>
+  </body>
+</html>
