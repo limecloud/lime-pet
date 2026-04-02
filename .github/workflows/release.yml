@@ -70,7 +70,7 @@ jobs:
     needs: meta
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           ref: ${{ needs.meta.outputs.target_ref }}
@@ -87,7 +87,7 @@ jobs:
         run: ./scripts/package-release.sh --version "${{ needs.meta.outputs.version }}" --build-number "${{ github.run_number }}"
 
       - name: Upload release artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: lime-pet-${{ needs.meta.outputs.tag }}-macos
           path: |
@@ -103,13 +103,13 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           ref: ${{ needs.meta.outputs.target_ref }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "22"
           cache: "npm"
@@ -137,7 +137,7 @@ jobs:
         run: npm run tauri build
 
       - name: Upload Windows release artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: lime-pet-${{ needs.meta.outputs.tag }}-windows
           path: |
@@ -152,19 +152,19 @@ jobs:
       - package-windows
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           ref: ${{ needs.meta.outputs.target_ref }}
 
       - name: Download macOS artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: lime-pet-${{ needs.meta.outputs.tag }}-macos
           path: artifacts/macos
 
       - name: Download Windows artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: lime-pet-${{ needs.meta.outputs.tag }}-windows
           path: artifacts/windows
