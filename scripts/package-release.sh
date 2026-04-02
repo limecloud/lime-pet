@@ -8,6 +8,7 @@ RELEASE_DIR="${REPO_ROOT}/dist/release"
 
 VERSION=""
 BUILD_NUMBER=""
+ARTIFACT_SUFFIX=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -17,6 +18,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --build-number)
       BUILD_NUMBER="$2"
+      shift 2
+      ;;
+    --artifact-suffix)
+      ARTIFACT_SUFFIX="$2"
       shift 2
       ;;
     *)
@@ -31,6 +36,20 @@ if [[ -z "${VERSION}" ]]; then
   exit 1
 fi
 
+if [[ -z "${ARTIFACT_SUFFIX}" ]]; then
+  case "$(uname -m)" in
+    arm64|aarch64)
+      ARTIFACT_SUFFIX="macos-arm64"
+      ;;
+    x86_64|amd64)
+      ARTIFACT_SUFFIX="macos-x64"
+      ;;
+    *)
+      ARTIFACT_SUFFIX="macos-$(uname -m)"
+      ;;
+  esac
+fi
+
 SANITIZED_VERSION="${VERSION#v}"
 TAG_VERSION="v${SANITIZED_VERSION}"
 APP_PATH="$("${SCRIPT_DIR}/build-app.sh" \
@@ -38,7 +57,7 @@ APP_PATH="$("${SCRIPT_DIR}/build-app.sh" \
   --version "${SANITIZED_VERSION}" \
   --build-number "${BUILD_NUMBER}")"
 
-ZIP_PATH="${RELEASE_DIR}/LimePet-${TAG_VERSION}-macos-unsigned.zip"
+ZIP_PATH="${RELEASE_DIR}/LimePet-${TAG_VERSION}-${ARTIFACT_SUFFIX}-unsigned.zip"
 CHECKSUM_PATH="${ZIP_PATH}.sha256"
 
 rm -rf "${RELEASE_DIR}"

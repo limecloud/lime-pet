@@ -1,7 +1,7 @@
 {
   "name": "lime-pet-windows",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "sync:assets": "node scripts/sync-shared-assets.mjs",
@@ -13,7 +13,9 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@tauri-apps/api": "2.10.1"
+    "@tauri-apps/api": "2.10.1",
+    "pixi-live2d-display": "^0.4.0",
+    "pixi.js": "^6.5.10"
   },
   "devDependencies": {
     "@tauri-apps/cli": "2.10.1",

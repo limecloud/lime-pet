@@ -14,6 +14,27 @@
       <section class="bubble" id="bubble" aria-live="polite"></section>
 
       <div class="context-menu hidden" id="contextMenu" role="menu">
+        <section class="context-section" aria-label="Lime Companion 诊断">
+          <p class="context-section-title">Lime Companion 诊断</p>
+          <div class="context-static-list" id="diagnosticSummary"></div>
+          <div class="context-divider"></div>
+          <div class="context-static-list compact" id="diagnosticChecklist"></div>
+        </section>
+
+        <section class="context-section" aria-label="服务商摘要">
+          <p class="context-section-title">服务商摘要</p>
+          <div class="context-static-list compact" id="providerOverviewList"></div>
+        </section>
+
+        <section class="context-section" aria-label="切换外观">
+          <p class="context-section-title">切换外观</p>
+          <div class="context-action-list compact" id="characterList"></div>
+        </section>
+
+        <div class="context-divider"></div>
+        <button class="context-item" data-action="reconnect" type="button">重连 Lime</button>
+        <button class="context-item" data-action="sync-provider-overview" type="button">立即同步到桌宠</button>
+        <button class="context-item" data-action="provider-settings" type="button">打开 AI 服务商设置</button>
         <button class="context-item" data-action="recenter" type="button">回到中央</button>
         <button class="context-item" data-action="hide" type="button">隐藏桌宠</button>
         <button class="context-item danger" data-action="quit" type="button">退出 Lime Pet</button>
@@ -48,11 +69,16 @@
         </div>
 
         <button class="pet-button" id="petButton" type="button" aria-label="Lime Pet">
+          <iframe
+            class="pet-live2d-frame hidden"
+            id="live2dFrame"
+            title="Lime Pet Live2D"
+            loading="eager"
+          ></iframe>
           <span class="pet-shimmer"></span>
           <img
             class="pet-image"
             id="petImage"
-            src="/src/assets/shared/dewy-lime-shadow.png"
             alt="Lime Pet"
             draggable="false"
           />

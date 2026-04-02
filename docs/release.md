@@ -10,28 +10,29 @@
   - 对应日常质量校验
   - 在 `pull_request`、`push main`、`workflow_dispatch` 触发
   - macOS 侧统一走 `Swift Package Manager + scripts/build-app.sh`
+  - macOS 预览构建会同时覆盖 Apple Silicon 与 Intel 两条 GitHub-hosted runner
   - Windows 侧统一走 `WindowsPet/` 下的 `Tauri v2` 构建链路
   - 会验证 macOS debug `.app` 可构建
   - 会验证 Windows companion 可打出 NSIS installer preview
-  - 会上传 macOS preview zip 与 Windows preview installer
+  - 会上传 `macos-arm64`、`macos-x64` 预览 zip 与 Windows preview installer
 - `release.yml`
   - 用于 tag / `workflow_dispatch`
   - macOS 侧统一走 `scripts/package-release.sh`
   - Windows 侧统一走 `WindowsPet npm run tauri build`
-  - 默认产出 macOS unsigned zip / `sha256` 与 Windows NSIS installer
+  - 默认产出 `macos-arm64`、`macos-x64` 两份 macOS unsigned zip / `sha256` 与 Windows NSIS installer
   - tag 触发时会自动发布到 GitHub Release
 
 ## 本地发布命令
 
 ```bash
-./scripts/package-release.sh --version "0.2.0" --build-number "1"
+./scripts/package-release.sh --version "0.3.0" --build-number "1"
 ```
 
-默认产物：
+默认产物会按当前宿主架构命名，例如 Apple Silicon 机器上会得到：
 
 ```text
-dist/release/LimePet-v0.2.0-macos-unsigned.zip
-dist/release/LimePet-v0.2.0-macos-unsigned.zip.sha256
+dist/release/LimePet-v0.3.0-macos-arm64-unsigned.zip
+dist/release/LimePet-v0.3.0-macos-arm64-unsigned.zip.sha256
 ```
 
 Windows 本地产物命令：
@@ -53,6 +54,7 @@ WindowsPet/src-tauri/target/release/bundle/nsis/*.exe
 - App bundle 的 `CFBundleShortVersionString` 由 `--version` 注入
 - App bundle 的 `CFBundleVersion` 由 `--build-number` 注入
 - `release.yml` 默认使用 GitHub tag 去推导版本号，并用 `github.run_number` 作为构建号
+- `scripts/package-release.sh` 默认会按当前宿主架构命名产物；CI 中会显式注入 `macos-arm64` / `macos-x64`
 - Windows installer 当前跟随 `WindowsPet/package.json` / `WindowsPet/src-tauri/Cargo.toml` 的仓库版本演进
 
 ## Apple 侧材料

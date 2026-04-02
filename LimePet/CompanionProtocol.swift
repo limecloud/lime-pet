@@ -2,6 +2,23 @@ import Foundation
 
 let defaultCompanionEndpoint = "ws://127.0.0.1:45554/companion/pet"
 let companionProtocolVersion = 1
+let petCompanionCapabilities = [
+    "bubble",
+    "movement",
+    "tap-open-chat",
+    "drag-reposition",
+    "reactive-animations",
+    "perch-memory",
+    "dock-presets",
+    "ambient-dialogue",
+    "character-themes",
+    "provider-overview",
+    "provider-sync-request",
+    "open-provider-settings",
+    "multi-tap-actions",
+    "live2d-renderer",
+    "live2d-expressions"
+]
 
 enum PetState: String, CaseIterable, Codable {
     case hidden
@@ -17,6 +34,8 @@ enum CompanionCommandType: String {
     case stateChanged = "pet.state_changed"
     case showBubble = "pet.show_bubble"
     case openChatAnchor = "pet.open_chat_anchor"
+    case providerOverview = "pet.provider_overview"
+    case live2dAction = "pet.live2d_action"
 }
 
 enum CompanionEventType: String {
@@ -24,6 +43,10 @@ enum CompanionEventType: String {
     case clicked = "pet.clicked"
     case openChat = "pet.open_chat"
     case dismissed = "pet.dismissed"
+    case requestProviderOverviewSync = "pet.request_provider_overview_sync"
+    case openProviderSettings = "pet.open_provider_settings"
+    case requestPetCheer = "pet.request_pet_cheer"
+    case requestPetNextStep = "pet.request_pet_next_step"
 }
 
 enum IncomingCommand {
@@ -32,6 +55,8 @@ enum IncomingCommand {
     case stateChanged(PetState)
     case showBubble(text: String, autoHideMs: Int?)
     case openChatAnchor
+    case providerOverview(CompanionProviderOverviewPayload)
+    case live2dAction(CompanionLive2DActionPayload)
 }
 
 enum PetIPCConnectionStatus {
@@ -127,6 +152,84 @@ struct BubblePayload: Decodable {
     enum CodingKeys: String, CodingKey {
         case text
         case autoHideMs = "auto_hide_ms"
+    }
+}
+
+struct CompanionProviderSummary: Decodable {
+    let providerType: String
+    let displayName: String
+    let totalCount: Int
+    let healthyCount: Int
+    let available: Bool
+    let needsAttention: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case providerType = "provider_type"
+        case displayName = "display_name"
+        case totalCount = "total_count"
+        case healthyCount = "healthy_count"
+        case available
+        case needsAttention = "needs_attention"
+    }
+}
+
+struct CompanionProviderOverviewPayload: Decodable {
+    let providers: [CompanionProviderSummary]
+    let totalProviderCount: Int
+    let availableProviderCount: Int
+    let needsAttentionProviderCount: Int
+
+    enum CodingKeys: String, CodingKey {
+        case providers
+        case totalProviderCount = "total_provider_count"
+        case availableProviderCount = "available_provider_count"
+        case needsAttentionProviderCount = "needs_attention_provider_count"
+    }
+}
+
+enum CompanionLive2DExpressionValue: Decodable, Hashable {
+    case index(Int)
+    case tag(String)
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if let intValue = try? container.decode(Int.self) {
+            self = .index(intValue)
+            return
+        }
+        if let stringValue = try? container.decode(String.self) {
+            self = .tag(stringValue)
+            return
+        }
+        throw DecodingError.typeMismatch(
+            CompanionLive2DExpressionValue.self,
+            DecodingError.Context(
+                codingPath: decoder.codingPath,
+                debugDescription: "Unsupported Live2D expression value"
+            )
+        )
+    }
+}
+
+struct CompanionLive2DActionPayload: Decodable {
+    let expressions: [CompanionLive2DExpressionValue]
+    let emotionTags: [String]
+    let motionGroup: String?
+    let motionIndex: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case expressions
+        case emotionTags = "emotion_tags"
+        case motionGroup = "motion_group"
+        case motionIndex = "motion_index"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        expressions = try container.decodeIfPresent([CompanionLive2DExpressionValue].self, forKey: .expressions) ?? []
+        emotionTags = try container.decodeIfPresent([String].self, forKey: .emotionTags) ?? []
+        motionGroup = try container.decodeIfPresent(String.self, forKey: .motionGroup)
+        motionIndex = try container.decodeIfPresent(Int.self, forKey: .motionIndex)
     }
 }
 

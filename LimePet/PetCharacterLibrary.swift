@@ -215,12 +215,18 @@ struct PetCharacterTheme: Identifiable, Codable, Hashable {
     let id: String
     let displayName: String
     let switchBubble: String
+    let renderer: PetRendererKind?
+    let live2d: PetLive2DConfiguration?
     let palettes: PetCharacterStatePalettes
     let motion: PetCharacterMotion
     let dialogue: PetCharacterDialogue
     let accessories: PetCharacterAccessories
     let geometry: PetCharacterGeometry
     let symbols: PetCharacterSymbols
+
+    var rendererKind: PetRendererKind {
+        renderer ?? .sprite
+    }
 
     func palette(for state: PetState) -> PetRenderPalette {
         switch state {
@@ -324,6 +330,8 @@ extension PetCharacterTheme {
         id: "lime-scout",
         displayName: "青柠巡游",
         switchBubble: "切换到青柠巡游形态",
+        renderer: .sprite,
+        live2d: nil,
         palettes: PetCharacterStatePalettes(
             idle: PetPaletteTokens(
                 shell: PetColorToken(red: 0.25, green: 0.63, blue: 0.89, alpha: 1),

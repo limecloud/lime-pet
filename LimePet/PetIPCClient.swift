@@ -48,23 +48,32 @@ final class PetIPCClient: NSObject {
         send(event: .openChat, payload: payload)
     }
 
+    func openProviderSettings(source: String) {
+        send(event: .openProviderSettings, payload: InteractionPayload(source: source))
+    }
+
+    func requestProviderOverviewSync(source: String) {
+        send(
+            event: .requestProviderOverviewSync,
+            payload: InteractionPayload(source: source)
+        )
+    }
+
+    func requestPetCheer(source: String) {
+        send(event: .requestPetCheer, payload: InteractionPayload(source: source))
+    }
+
+    func requestPetNextStep(source: String) {
+        send(event: .requestPetNextStep, payload: InteractionPayload(source: source))
+    }
+
     private func sendReadyEvent() {
         send(
             event: .ready,
             payload: ReadyPayload(
                 clientId: configuration.clientId,
                 platform: "macos",
-                capabilities: [
-                    "bubble",
-                    "movement",
-                    "tap-open-chat",
-                    "drag-reposition",
-                    "reactive-animations",
-                    "perch-memory",
-                    "dock-presets",
-                    "ambient-dialogue",
-                    "character-themes"
-                ]
+                capabilities: petCompanionCapabilities
             )
         )
     }
@@ -151,6 +160,14 @@ final class PetIPCClient: NSObject {
             }
         case CompanionCommandType.openChatAnchor.rawValue:
             delegate?.petIPCClient(self, didReceive: .openChatAnchor)
+        case CompanionCommandType.providerOverview.rawValue:
+            if let payload = decodePayload(CompanionProviderOverviewPayload.self, from: envelope.payload) {
+                delegate?.petIPCClient(self, didReceive: .providerOverview(payload))
+            }
+        case CompanionCommandType.live2dAction.rawValue:
+            if let payload = decodePayload(CompanionLive2DActionPayload.self, from: envelope.payload) {
+                delegate?.petIPCClient(self, didReceive: .live2dAction(payload))
+            }
         default:
             break
         }

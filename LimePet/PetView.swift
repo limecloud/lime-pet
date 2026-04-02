@@ -5,6 +5,9 @@ struct PetView: View {
     let debugWindowSurface: Bool
     let onDragChanged: (DragGesture.Value) -> Void
     let onDragEnded: (DragGesture.Value) -> Void
+    let onOpenProviderSettingsRequested: () -> Void
+    let onSyncProviderOverviewRequested: () -> Void
+    let onReconnectRequested: () -> Void
     let onHideRequested: () -> Void
     let onQuitRequested: () -> Void
 
@@ -28,7 +31,7 @@ struct PetView: View {
 
             VStack(spacing: 0) {
                 Spacer(minLength: 62)
-                PetCharacterRenderer(sceneModel: sceneModel, palette: palette)
+                PetRenderSurface(sceneModel: sceneModel, palette: palette)
             }
 
             if sceneModel.isDragging {
@@ -48,6 +51,38 @@ struct PetView: View {
                 }
         )
         .contextMenu {
+            Menu("Lime Companion 诊断") {
+                diagnosticReadonlyItem(sceneModel.companionDiagnostic.connectionLine)
+                diagnosticReadonlyItem(sceneModel.companionDiagnostic.endpointLine)
+                diagnosticReadonlyItem(sceneModel.companionDiagnostic.syncLine)
+                diagnosticReadonlyItem(sceneModel.companionDiagnostic.lastSyncLine)
+                diagnosticReadonlyItem(sceneModel.companionDiagnostic.actionLine)
+                Divider()
+                ForEach(Array(sceneModel.companionDiagnostic.checkLines.enumerated()), id: \.offset) { _, line in
+                    diagnosticReadonlyItem(line)
+                }
+            }
+
+            Menu("服务商摘要") {
+                ForEach(Array(sceneModel.companionDiagnostic.providerLines.enumerated()), id: \.offset) { _, line in
+                    diagnosticReadonlyItem(line)
+                }
+            }
+
+            Divider()
+
+            Button("重连 Lime") {
+                onReconnectRequested()
+            }
+
+            Button("立即同步到桌宠") {
+                onSyncProviderOverviewRequested()
+            }
+
+            Button("打开 AI 服务商设置") {
+                onOpenProviderSettingsRequested()
+            }
+
             Button("隐藏桌宠") {
                 onHideRequested()
             }
@@ -60,6 +95,11 @@ struct PetView: View {
         .animation(.easeInOut(duration: 0.2), value: sceneModel.state)
         .animation(.spring(response: 0.24, dampingFraction: 0.7), value: sceneModel.isDragging)
         .animation(.easeInOut(duration: 0.2), value: sceneModel.character.id)
+    }
+
+    private func diagnosticReadonlyItem(_ title: String) -> some View {
+        Button(title) {}
+            .disabled(true)
     }
 
     private var debugSurface: some View {
@@ -84,32 +124,38 @@ struct PetView: View {
     private func bubble(text: String) -> some View {
         VStack(spacing: 0) {
             Text(text)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Color(red: 0.13, green: 0.17, blue: 0.16))
-                .padding(.horizontal, 15)
-                .padding(.vertical, 10)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                .overlay(
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(Color(red: 0.18, green: 0.24, blue: 0.21))
+                .lineLimit(2)
+                .minimumScaleFactor(0.92)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 11)
+                .background(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .fill(
                             LinearGradient(
                                 colors: [
-                                    Color.white.opacity(0.82),
-                                    palette.belly.opacity(0.34)
+                                    Color.white.opacity(0.96),
+                                    Color(red: 0.95, green: 0.99, blue: 0.96).opacity(0.94),
+                                    palette.belly.opacity(0.78)
                                 ],
                                 startPoint: .top,
                                 endPoint: .bottom
                             )
                         )
-                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(palette.glow.opacity(0.18), lineWidth: 1)
+                        .stroke(Color.white.opacity(0.88), lineWidth: 0.8)
                 )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(palette.glow.opacity(0.34), lineWidth: 1.2)
+                )
+                .shadow(color: Color.white.opacity(0.24), radius: 8, y: -1)
 
             RoundedRectangle(cornerRadius: 3, style: .continuous)
-                .fill(Color.white.opacity(0.9))
+                .fill(Color.white.opacity(0.96))
                 .frame(width: 12, height: 8)
                 .rotationEffect(.degrees(45))
                 .frame(maxWidth: .infinity, alignment: sceneModel.isFacingRight ? .trailing : .leading)
@@ -117,8 +163,8 @@ struct PetView: View {
                 .offset(y: -5)
         }
         .offset(y: CGFloat(sin(sceneModel.haloPulse * 0.92)) * 2.2)
-        .shadow(color: palette.glow.opacity(0.08), radius: 12, y: 6)
-        .shadow(color: Color.black.opacity(0.08), radius: 16, y: 8)
+        .shadow(color: palette.glow.opacity(0.14), radius: 14, y: 7)
+        .shadow(color: Color.black.opacity(0.16), radius: 18, y: 9)
     }
 
     private var ambientGlow: some View {

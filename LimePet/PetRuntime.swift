@@ -2,7 +2,7 @@ import AppKit
 import Combine
 import SwiftUI
 
-private let petTapThreshold: CGFloat = 4
+private let petTapThreshold: CGFloat = 10
 
 @MainActor
 final class PetSceneModel: ObservableObject {
@@ -28,6 +28,8 @@ final class PetSceneModel: ObservableObject {
     @Published var earLift: CGFloat = 0
     @Published var whiskerSwing: Double = 0
     @Published var mouthCurve: CGFloat = 0.5
+    @Published var companionDiagnostic = PetCompanionDiagnosticSnapshot.placeholder
+    @Published var live2dQueuedAction: PetLive2DQueuedAction?
 
     private var bubbleHideTask: Task<Void, Never>?
     private var animationTime: Double = 0
@@ -187,10 +189,14 @@ final class PetCoordinator: NSObject {
     private var window: NSWindow?
     private var movementTimer: Timer?
     private var statusItem: NSStatusItem?
+    private var companionDiagnosticMenu: NSMenu?
+    private var providerSummaryMenu: NSMenu?
     private var characterMenuItems: [NSMenuItem] = []
     private var dragStartMouseLocation: NSPoint?
     private var dragMouseOffset: NSPoint?
     private var ambientDialogueTask: Task<Void, Never>?
+    private var tapDispatchTask: Task<Void, Never>?
+    private var pendingTapCount = 0
 
     private let petSize = NSSize(width: 260, height: 228)
     private var currentX: CGFloat = 0
@@ -203,12 +209,25 @@ final class PetCoordinator: NSObject {
     private var strollFramesRemaining = 0
     private var pauseFramesRemaining = 0
     private var lastVisibleState: PetState = .walking
+    private var providerOverviewFingerprint: String?
+    private var latestProviderOverview: CompanionProviderOverviewPayload?
+    private var lastProviderOverviewAt: Date?
+    private var lastConnectionReason: String?
+    private var currentEndpointLabel: String
+    private var hasConnectedOnce = false
+    private var live2dActionSequence = 0
+
+    private var isPointerInteractionActive: Bool {
+        dragStartMouseLocation != nil || pendingTapCount > 0 || tapDispatchTask != nil
+    }
 
     init(configuration: LaunchConfiguration) {
         self.configuration = configuration
         self.currentCharacter = PetCharacterLibrary.shared.selectedCharacter()
+        self.currentEndpointLabel = configuration.endpoint?.absoluteString ?? "未配置"
         super.init()
         sceneModel.updateCharacter(currentCharacter)
+        refreshDiagnosticPresentation()
     }
 
     func start() {
@@ -218,13 +237,15 @@ final class PetCoordinator: NSObject {
         startAmbientDialogueLoop()
         resetPatrolCycle()
         ipcClient.connect()
-        sceneModel.showBubble("拖拽我换个位置，轻点我打开 Lime", autoHideMs: 1800)
+        refreshDiagnosticPresentation()
+        sceneModel.showBubble("轻点打开 Lime，双击听青柠一句话，三击拿下一步建议", autoHideMs: 2200)
     }
 
     func stop() {
         movementTimer?.invalidate()
         movementTimer = nil
         ambientDialogueTask?.cancel()
+        cancelPendingTapResolution()
         if let screen = window?.screen ?? NSScreen.main {
             persistPlacement(on: screen)
         }
@@ -282,9 +303,11 @@ final class PetCoordinator: NSObject {
     private func applyCharacter(_ character: PetCharacterTheme, announce: Bool) {
         currentCharacter = character
         sceneModel.updateCharacter(character)
+        sceneModel.live2dQueuedAction = nil
         startAmbientDialogueLoop()
         refreshCharacterMenuState()
         updateStatusButtonIcon()
+        queueLive2DStateAction(for: sceneModel.state)
 
         if announce {
             sceneModel.markInteraction()
@@ -336,6 +359,15 @@ final class PetCoordinator: NSObject {
             onDragEnded: { [weak self] value in
                 self?.handleDragEnded(value)
             },
+            onOpenProviderSettingsRequested: { [weak self] in
+                self?.requestOpenProviderSettings(source: "context_menu")
+            },
+            onSyncProviderOverviewRequested: { [weak self] in
+                self?.requestProviderOverviewSync(source: "context_menu")
+            },
+            onReconnectRequested: { [weak self] in
+                self?.reconnectIPC()
+            },
             onHideRequested: { [weak self] in
                 self?.hidePet()
             },
@@ -373,6 +405,26 @@ final class PetCoordinator: NSObject {
         let reconnectItem = NSMenuItem(title: "重连 Lime", action: #selector(reconnectIPC), keyEquivalent: "r")
         reconnectItem.target = self
         menu.addItem(reconnectItem)
+
+        let providerSettingsItem = NSMenuItem(title: "打开 AI 服务商设置", action: #selector(openProviderSettings), keyEquivalent: "p")
+        providerSettingsItem.target = self
+        menu.addItem(providerSettingsItem)
+
+        let syncProviderItem = NSMenuItem(title: "立即同步到桌宠", action: #selector(syncProviderOverview), keyEquivalent: "s")
+        syncProviderItem.target = self
+        menu.addItem(syncProviderItem)
+
+        let diagnosticItem = NSMenuItem(title: "Lime Companion 诊断", action: nil, keyEquivalent: "")
+        let diagnosticMenu = NSMenu(title: "Lime Companion 诊断")
+        menu.addItem(diagnosticItem)
+        menu.setSubmenu(diagnosticMenu, for: diagnosticItem)
+        companionDiagnosticMenu = diagnosticMenu
+
+        let providerSummaryItem = NSMenuItem(title: "服务商摘要", action: nil, keyEquivalent: "")
+        let providerSummaryMenu = NSMenu(title: "服务商摘要")
+        menu.addItem(providerSummaryItem)
+        menu.setSubmenu(providerSummaryMenu, for: providerSummaryItem)
+        self.providerSummaryMenu = providerSummaryMenu
 
         let recenterItem = NSMenuItem(title: "回到屏幕中央", action: #selector(recenterPet), keyEquivalent: "c")
         recenterItem.target = self
@@ -421,6 +473,7 @@ final class PetCoordinator: NSObject {
         menu.addItem(quitItem)
 
         refreshCharacterMenuState()
+        refreshDiagnosticPresentation()
         statusItem.menu = menu
     }
 
@@ -551,6 +604,14 @@ final class PetCoordinator: NSObject {
         window?.setFrameOrigin(NSPoint(x: currentX, y: currentY))
     }
 
+    @objc private func openProviderSettings() {
+        requestOpenProviderSettings(source: "status_item")
+    }
+
+    @objc private func syncProviderOverview() {
+        requestProviderOverviewSync(source: "status_item")
+    }
+
     private func hidePet() {
         applySceneState(.hidden)
         updateWindowVisibility()
@@ -561,6 +622,69 @@ final class PetCoordinator: NSObject {
             lastVisibleState = state
         }
         sceneModel.apply(state: state)
+        queueLive2DStateAction(for: state)
+    }
+
+    private func queueLive2DStateAction(for state: PetState) {
+        queueLive2DAction(currentCharacter.live2d?.resolvedStateAction(for: state))
+    }
+
+    private func queueLive2DTapAction(_ kind: PetLive2DTapKind) {
+        guard let live2d = currentCharacter.live2d, currentCharacter.rendererKind == .live2d else {
+            return
+        }
+
+        let motion: PetLive2DMotion?
+        switch kind {
+        case .single:
+            motion = live2d.tapActions.single
+        case .double:
+            motion = live2d.tapActions.double
+        case .triple:
+            motion = live2d.tapActions.triple
+        }
+
+        queueLive2DAction(
+            motion.map {
+                PetLive2DResolvedActionContent(expressionIndices: [], motion: $0)
+            }
+        )
+    }
+
+    private func queueIncomingLive2DAction(_ payload: CompanionLive2DActionPayload) {
+        guard let live2d = currentCharacter.live2d, currentCharacter.rendererKind == .live2d else {
+            return
+        }
+
+        let resolved = live2d.resolvedExpressions(from: payload.expressions) + live2d.resolvedExpressions(from: payload.emotionTags)
+        var expressionIndices: [Int] = []
+        var seenIndices = Set<Int>()
+        for index in resolved where seenIndices.insert(index).inserted {
+            expressionIndices.append(index)
+        }
+
+        let motion: PetLive2DMotion?
+        if let motionGroup = payload.motionGroup, let motionIndex = payload.motionIndex {
+            motion = PetLive2DMotion(group: motionGroup, index: motionIndex)
+        } else {
+            motion = nil
+        }
+
+        queueLive2DAction(
+            PetLive2DResolvedActionContent(
+                expressionIndices: expressionIndices,
+                motion: motion
+            )
+        )
+    }
+
+    private func queueLive2DAction(_ content: PetLive2DResolvedActionContent?) {
+        guard currentCharacter.rendererKind == .live2d, let content, content.hasEffect else {
+            return
+        }
+
+        live2dActionSequence += 1
+        sceneModel.live2dQueuedAction = PetLive2DQueuedAction(id: live2dActionSequence, content: content)
     }
 
     private func revealLastVisibleState() {
@@ -607,7 +731,11 @@ final class PetCoordinator: NSObject {
         restY = floorY(for: screen)
 
         var isMoving = false
-        let canPatrol = sceneModel.state == .walking && !sceneModel.isDragging
+        let shouldFreezeForPointer = isPointerInteractionActive
+        let canPatrol =
+            sceneModel.state == .walking &&
+            !sceneModel.isDragging &&
+            !shouldFreezeForPointer
 
         if canPatrol {
             let bounds = roamingBounds(on: screen)
@@ -645,13 +773,13 @@ final class PetCoordinator: NSObject {
             }
 
             sceneModel.isFacingRight = direction > 0
-        } else {
+        } else if !shouldFreezeForPointer {
             currentX += (anchorX - currentX) * 0.08
         }
 
         sceneModel.advanceFrame(isMoving: isMoving)
 
-        if !sceneModel.isDragging {
+        if !sceneModel.isDragging && !shouldFreezeForPointer {
             currentY += (restY - currentY) * 0.18
         }
 
@@ -678,6 +806,7 @@ final class PetCoordinator: NSObject {
                 x: mouseLocation.x - window.frame.origin.x,
                 y: mouseLocation.y - window.frame.origin.y
             )
+            resetPatrolCycle(startPaused: true)
         }
 
         guard let dragStartMouseLocation else { return }
@@ -690,6 +819,7 @@ final class PetCoordinator: NSObject {
         }
 
         if !sceneModel.isDragging {
+            cancelPendingTapResolution()
             sceneModel.setDragging(true)
             sceneModel.showBubble("把我放到喜欢的位置", autoHideMs: 1000)
         }
@@ -720,7 +850,7 @@ final class PetCoordinator: NSObject {
         dragMouseOffset = nil
 
         if distance < petTapThreshold {
-            handleTap()
+            registerTapGesture()
             return
         }
 
@@ -740,9 +870,42 @@ final class PetCoordinator: NSObject {
         sceneModel.showBubble(currentPerch.placementBubble, autoHideMs: 1300)
     }
 
-    private func handleTap() {
+    private func cancelPendingTapResolution() {
+        pendingTapCount = 0
+        tapDispatchTask?.cancel()
+        tapDispatchTask = nil
+    }
+
+    private func registerTapGesture() {
+        pendingTapCount = min(pendingTapCount + 1, 3)
+        tapDispatchTask?.cancel()
+        tapDispatchTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(320))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                self?.dispatchAccumulatedTapGesture()
+            }
+        }
+    }
+
+    private func dispatchAccumulatedTapGesture() {
+        let tapCount = pendingTapCount
+        cancelPendingTapResolution()
+
+        switch tapCount {
+        case 3...:
+            handleTripleTap()
+        case 2:
+            handleDoubleTap()
+        default:
+            handleSingleTap()
+        }
+    }
+
+    private func handleSingleTap() {
         sceneModel.setDragging(false)
         sceneModel.markInteraction()
+        queueLive2DTapAction(.single)
 
         guard sceneModel.isConnected else {
             sceneModel.showBubble("Lime 还没连上，我先等它", autoHideMs: 1400)
@@ -754,23 +917,173 @@ final class PetCoordinator: NSObject {
         resetPatrolCycle(startPaused: true)
         ipcClient.sendTapEvents()
     }
+
+    private func handleDoubleTap() {
+        sceneModel.setDragging(false)
+        sceneModel.markInteraction()
+        queueLive2DTapAction(.double)
+
+        guard sceneModel.isConnected else {
+            sceneModel.showBubble("Lime 还没连上，我先等它", autoHideMs: 1400)
+            ipcClient.reconnect()
+            return
+        }
+
+        sceneModel.showBubble("青柠想一句鼓励给你…", autoHideMs: 1400)
+        resetPatrolCycle(startPaused: true)
+        ipcClient.requestPetCheer(source: "double_tap")
+    }
+
+    private func handleTripleTap() {
+        sceneModel.setDragging(false)
+        sceneModel.markInteraction()
+        queueLive2DTapAction(.triple)
+
+        guard sceneModel.isConnected else {
+            sceneModel.showBubble("Lime 还没连上，我先等它", autoHideMs: 1400)
+            ipcClient.reconnect()
+            return
+        }
+
+        sceneModel.showBubble("青柠在想你的下一步…", autoHideMs: 1400)
+        resetPatrolCycle(startPaused: true)
+        ipcClient.requestPetNextStep(source: "triple_tap")
+    }
+
+    private func requestOpenProviderSettings(source: String) {
+        sceneModel.setDragging(false)
+        sceneModel.markInteraction()
+
+        guard sceneModel.isConnected else {
+            sceneModel.showBubble("Lime 还没连上，我先等它", autoHideMs: 1400)
+            ipcClient.reconnect()
+            return
+        }
+
+        sceneModel.showBubble("正在打开 AI 服务商设置…", autoHideMs: 1200)
+        resetPatrolCycle(startPaused: true)
+        ipcClient.openProviderSettings(source: source)
+    }
+
+    private func requestProviderOverviewSync(source: String) {
+        sceneModel.setDragging(false)
+        sceneModel.markInteraction()
+
+        guard sceneModel.isConnected else {
+            sceneModel.showBubble("Lime 还没连上，我先等它", autoHideMs: 1400)
+            ipcClient.reconnect()
+            return
+        }
+
+        sceneModel.showBubble("正在请求同步桌宠摘要…", autoHideMs: 1200)
+        resetPatrolCycle(startPaused: true)
+        ipcClient.requestProviderOverviewSync(source: source)
+    }
+
+    private func handleProviderOverview(_ overview: CompanionProviderOverviewPayload) {
+        latestProviderOverview = overview
+        lastProviderOverviewAt = Date()
+        let nextFingerprint = providerOverviewFingerprint(for: overview)
+        let shouldUpdateBubble = nextFingerprint != providerOverviewFingerprint
+        providerOverviewFingerprint = nextFingerprint
+        refreshDiagnosticPresentation()
+
+        guard shouldUpdateBubble else { return }
+
+        let shouldInterruptCurrentBubble =
+            overview.totalProviderCount == 0 ||
+            overview.availableProviderCount == 0 ||
+            overview.needsAttentionProviderCount > 0
+
+        guard sceneModel.bubbleText == nil || shouldInterruptCurrentBubble else {
+            return
+        }
+
+        sceneModel.showBubble(
+            petProviderOverviewBubbleText(for: overview),
+            autoHideMs: shouldInterruptCurrentBubble ? 2100 : 1500
+        )
+    }
+
+    private func providerOverviewFingerprint(for overview: CompanionProviderOverviewPayload) -> String {
+        let providerSegments = overview.providers.map { provider in
+            "\(provider.providerType):\(provider.healthyCount)/\(provider.totalCount):\(provider.available ? 1 : 0):\(provider.needsAttention ? 1 : 0)"
+        }
+        return (
+            [
+                String(overview.totalProviderCount),
+                String(overview.availableProviderCount),
+                String(overview.needsAttentionProviderCount)
+            ] + providerSegments
+        ).joined(separator: "|")
+    }
+
+    private func refreshDiagnosticPresentation() {
+        let snapshot = makePetCompanionDiagnosticSnapshot(
+            input: PetCompanionDiagnosticInput(
+                endpointConfigured: configuration.endpoint != nil,
+                endpointLabel: currentEndpointLabel,
+                isConnected: sceneModel.isConnected,
+                lastConnectionReason: lastConnectionReason,
+                hasConnectedOnce: hasConnectedOnce,
+                latestProviderOverview: latestProviderOverview,
+                lastProviderOverviewAt: lastProviderOverviewAt
+            )
+        )
+        sceneModel.companionDiagnostic = snapshot
+        reloadCompanionDiagnosticMenu(with: snapshot)
+        reloadProviderSummaryMenu(with: snapshot)
+    }
+
+    private func reloadCompanionDiagnosticMenu(with snapshot: PetCompanionDiagnosticSnapshot) {
+        guard let companionDiagnosticMenu else { return }
+        companionDiagnosticMenu.removeAllItems()
+        addReadonlyMenuItem(snapshot.connectionLine, to: companionDiagnosticMenu)
+        addReadonlyMenuItem(snapshot.endpointLine, to: companionDiagnosticMenu)
+        addReadonlyMenuItem(snapshot.syncLine, to: companionDiagnosticMenu)
+        addReadonlyMenuItem(snapshot.lastSyncLine, to: companionDiagnosticMenu)
+        addReadonlyMenuItem(snapshot.actionLine, to: companionDiagnosticMenu)
+        companionDiagnosticMenu.addItem(.separator())
+        snapshot.checkLines.forEach { line in
+            addReadonlyMenuItem(line, to: companionDiagnosticMenu)
+        }
+    }
+
+    private func reloadProviderSummaryMenu(with snapshot: PetCompanionDiagnosticSnapshot) {
+        guard let providerSummaryMenu else { return }
+        providerSummaryMenu.removeAllItems()
+        snapshot.providerLines.forEach { line in
+            addReadonlyMenuItem(line, to: providerSummaryMenu)
+        }
+    }
+
+    private func addReadonlyMenuItem(_ title: String, to menu: NSMenu) {
+        let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+        item.isEnabled = false
+        menu.addItem(item)
+    }
 }
 
 extension PetCoordinator: PetIPCClientDelegate {
     func petIPCClient(_ client: PetIPCClient, didChange status: PetIPCConnectionStatus) {
         switch status {
-        case .connected:
+        case .connected(let endpoint):
+            currentEndpointLabel = endpoint
+            lastConnectionReason = nil
+            hasConnectedOnce = true
             sceneModel.updateConnection(connected: true)
             if sceneModel.bubbleText == nil {
                 sceneModel.showBubble("已连接到 Lime", autoHideMs: 1400)
             }
         case .disconnected(let reason):
+            lastConnectionReason = reason
             sceneModel.updateConnection(connected: false)
             applySceneState(.idle)
             if sceneModel.bubbleText == nil {
                 sceneModel.showBubble(reason, autoHideMs: 1400)
             }
         }
+        refreshDiagnosticPresentation()
     }
 
     func petIPCClient(_ client: PetIPCClient, didReceive command: IncomingCommand) {
@@ -793,6 +1106,10 @@ extension PetCoordinator: PetIPCClientDelegate {
             sceneModel.showBubble(text, autoHideMs: autoHideMs)
         case .openChatAnchor:
             sceneModel.showBubble("点我打开 Lime 对话", autoHideMs: 1600)
+        case .providerOverview(let overview):
+            handleProviderOverview(overview)
+        case .live2dAction(let payload):
+            queueIncomingLive2DAction(payload)
         }
     }
 }

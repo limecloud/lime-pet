@@ -301,6 +301,8 @@ button {
 }
 
 .pet-image {
+  position: relative;
+  z-index: 2;
   width: 148px;
   height: 148px;
   object-fit: contain;
@@ -308,6 +310,22 @@ button {
   filter:
     drop-shadow(0 18px 22px rgba(103, 158, 122, 0.2))
     drop-shadow(0 -2px 5px rgba(255, 255, 255, 0.22));
+}
+
+.pet-live2d-frame {
+  position: absolute;
+  inset: 2px;
+  z-index: 1;
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  border: 0;
+  background: transparent;
+  pointer-events: none;
+}
+
+.pet-live2d-frame.hidden,
+.pet-image.hidden {
+  display: none;
 }
 
 .pet-shimmer {
@@ -361,7 +379,7 @@ button {
 .context-menu {
   position: absolute;
   z-index: 20;
-  min-width: 140px;
+  width: 244px;
   display: grid;
   gap: 4px;
   padding: 6px;
@@ -373,6 +391,54 @@ button {
 
 .context-menu.hidden {
   display: none;
+}
+
+.context-section {
+  display: grid;
+  gap: 6px;
+  padding: 6px 6px 4px;
+}
+
+.context-section-title {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(83, 120, 96, 0.88);
+}
+
+.context-static-list {
+  display: grid;
+  gap: 4px;
+}
+
+.context-static-list.compact {
+  gap: 3px;
+}
+
+.context-action-list {
+  display: grid;
+  gap: 4px;
+}
+
+.context-action-list.compact {
+  gap: 3px;
+}
+
+.context-static-item {
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(233, 255, 239, 0.52);
+  color: rgba(35, 53, 41, 0.88);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.context-divider {
+  height: 1px;
+  margin: 2px 6px;
+  background: linear-gradient(90deg, transparent, rgba(127, 170, 144, 0.28), transparent);
 }
 
 .context-item {
@@ -389,11 +455,17 @@ button {
   background: rgba(203, 255, 219, 0.38);
 }
 
+.context-item.active {
+  background: rgba(187, 255, 208, 0.44);
+  box-shadow: inset 0 0 0 1px rgba(102, 159, 123, 0.28);
+}
+
 .context-item.danger {
   color: rgba(143, 55, 55, 0.92);
 }
 
-.pet-shell.disconnected .pet-image {
+.pet-shell.disconnected .pet-image,
+.pet-shell.disconnected .pet-live2d-frame {
   filter:
     saturate(0.84)
     brightness(0.94)

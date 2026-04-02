@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "发布版本，例如 v0.2.0"
+        description: "发布版本，例如 v0.3.0"
         required: true
-        default: "v0.2.0"
+        default: "v0.3.0"
       source_ref:
         description: "构建所用 Git ref，例如 main 或某个 commit/tag"
         required: false
@@ -65,9 +65,19 @@ jobs:
           fi
 
   package-macos:
-    name: Package macOS Release
-    runs-on: macos-latest
+    name: Package macOS Release (${{ matrix.label }})
+    runs-on: ${{ matrix.runner }}
     needs: meta
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            label: Apple Silicon
+            artifact_suffix: macos-arm64
+          - runner: macos-15-intel
+            label: Intel
+            artifact_suffix: macos-x64
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -84,12 +94,12 @@ jobs:
           xcodebuild -version
 
       - name: Build release package
-        run: ./scripts/package-release.sh --version "${{ needs.meta.outputs.version }}" --build-number "${{ github.run_number }}"
+        run: ./scripts/package-release.sh --version "${{ needs.meta.outputs.version }}" --build-number "${{ github.run_number }}" --artifact-suffix "${{ matrix.artifact_suffix }}"
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v6
         with:
-          name: lime-pet-${{ needs.meta.outputs.tag }}-macos
+          name: lime-pet-${{ needs.meta.outputs.tag }}-${{ matrix.artifact_suffix }}
           path: |
             dist/release/*.zip
             dist/release/*.sha256
@@ -157,11 +167,17 @@ jobs:
           fetch-depth: 0
           ref: ${{ needs.meta.outputs.target_ref }}
 
-      - name: Download macOS artifact
+      - name: Download macOS Apple Silicon artifact
         uses: actions/download-artifact@v7
         with:
-          name: lime-pet-${{ needs.meta.outputs.tag }}-macos
-          path: artifacts/macos
+          name: lime-pet-${{ needs.meta.outputs.tag }}-macos-arm64
+          path: artifacts/macos-arm64
+
+      - name: Download macOS Intel artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: lime-pet-${{ needs.meta.outputs.tag }}-macos-x64
+          path: artifacts/macos-x64
 
       - name: Download Windows artifact
         uses: actions/download-artifact@v7
@@ -180,7 +196,8 @@ jobs:
             {
               echo "## Lime Pet ${{ needs.meta.outputs.tag }}"
               echo ""
-              echo "- macOS companion app unsigned zip bundle"
+              echo "- macOS Apple Silicon unsigned zip bundle"
+              echo "- macOS Intel unsigned zip bundle"
               echo "- Windows companion NSIS installer"
               echo "- Shared companion protocol across macOS Swift shell and Windows Tauri shell"
               echo "- Version: ${{ needs.meta.outputs.version }}"
@@ -207,7 +224,7 @@ jobs:
           fi
 
           shopt -s nullglob
-          assets=(artifacts/macos/* artifacts/windows/*)
+          assets=(artifacts/macos-arm64/* artifacts/macos-x64/* artifacts/windows/*)
 
           if gh release view "${tag}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
             gh release upload "${tag}" "${assets[@]}" --repo "${GITHUB_REPOSITORY}" --clobber

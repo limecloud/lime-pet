@@ -1,5 +1,15 @@
 import { invoke } from "@tauri-apps/api/core";
 import { currentMonitor, getCurrentWindow, PhysicalPosition } from "@tauri-apps/api/window";
+import {
+  defaultCompanionEndpoint,
+  makeCompanionDiagnosticSnapshot,
+  petCompanionCapabilities,
+  providerOverviewBubbleText,
+  providerOverviewFingerprint,
+  type CompanionDiagnosticSnapshot,
+  type ProviderOverviewItem,
+  type ProviderOverviewPayload
+} from "./companionDiagnostics";
 import "./styles.css";
 
 type PetState = "hidden" | "idle" | "walking" | "thinking" | "done";
@@ -9,7 +19,8 @@ type IncomingEvent =
   | "pet.hide"
   | "pet.state_changed"
   | "pet.show_bubble"
-  | "pet.open_chat_anchor";
+  | "pet.open_chat_anchor"
+  | "pet.provider_overview";
 
 interface LaunchConfig {
   endpoint: string | null;
@@ -53,6 +64,9 @@ const bubble = requiredElement<HTMLElement>("#bubble");
 const connectionLabel = requiredElement<HTMLElement>("#connectionLabel");
 const modeLabel = requiredElement<HTMLElement>("#modeLabel");
 const contextMenu = requiredElement<HTMLElement>("#contextMenu");
+const diagnosticSummary = requiredElement<HTMLElement>("#diagnosticSummary");
+const diagnosticChecklist = requiredElement<HTMLElement>("#diagnosticChecklist");
+const providerOverviewList = requiredElement<HTMLElement>("#providerOverviewList");
 
 const ambientLines = {
   connected: {
@@ -79,7 +93,24 @@ const state = {
   reconnectTimer: null as number | null,
   bubbleTimer: null as number | null,
   ambientTimer: null as number | null,
-  dragCandidate: null as { x: number; y: number; moved: boolean } | null
+  tapTimer: null as number | null,
+  tapCount: 0,
+  dragCandidate: null as { x: number; y: number; moved: boolean } | null,
+  providerOverviewFingerprint: null as string | null,
+  latestProviderOverview: null as ProviderOverviewPayload | null,
+  lastProviderOverviewAt: null as number | null,
+  lastConnectionReason: null as string | null,
+  endpointLabel: defaultCompanionEndpoint,
+  hasConnectedOnce: false,
+  companionDiagnostic: makeCompanionDiagnosticSnapshot({
+    endpointLabel: defaultCompanionEndpoint,
+    endpointConfigured: true,
+    isConnected: false,
+    lastConnectionReason: null,
+    hasConnectedOnce: false,
+    latestProviderOverview: null,
+    lastProviderOverviewAt: null
+  }) as CompanionDiagnosticSnapshot
 };
 
 function updateShellClasses(): void {
@@ -118,10 +149,48 @@ function renderBubble(): void {
   bubble.classList.toggle("visible", state.bubbleText.length > 0);
 }
 
+function refreshCompanionDiagnosticSnapshot(): void {
+  state.companionDiagnostic = makeCompanionDiagnosticSnapshot({
+    endpointLabel: state.endpointLabel,
+    endpointConfigured: state.endpointLabel !== "未配置",
+    isConnected: state.connected,
+    lastConnectionReason: state.lastConnectionReason,
+    hasConnectedOnce: state.hasConnectedOnce,
+    latestProviderOverview: state.latestProviderOverview,
+    lastProviderOverviewAt: state.lastProviderOverviewAt
+  });
+}
+
+function renderReadonlyLines(container: HTMLElement, lines: string[]): void {
+  container.replaceChildren(
+    ...lines.map((line) => {
+      const item = document.createElement("div");
+      item.className = "context-static-item";
+      item.textContent = line;
+      return item;
+    }),
+  );
+}
+
+function renderCompanionDiagnostics(): void {
+  refreshCompanionDiagnosticSnapshot();
+
+  renderReadonlyLines(diagnosticSummary, [
+    state.companionDiagnostic.connectionLine,
+    state.companionDiagnostic.endpointLine,
+    state.companionDiagnostic.syncLine,
+    state.companionDiagnostic.lastSyncLine,
+    state.companionDiagnostic.actionLine
+  ]);
+  renderReadonlyLines(diagnosticChecklist, state.companionDiagnostic.checkLines);
+  renderReadonlyLines(providerOverviewList, state.companionDiagnostic.providerLines);
+}
+
 function render(): void {
   updateShellClasses();
   renderLabels();
   renderBubble();
+  renderCompanionDiagnostics();
 }
 
 function clearBubbleTimer(): void {
@@ -161,9 +230,16 @@ function closeContextMenu(): void {
 }
 
 function openContextMenu(x: number, y: number): void {
-  contextMenu.style.left = `${x}px`;
-  contextMenu.style.top = `${y}px`;
   contextMenu.classList.remove("hidden");
+
+  const margin = 8;
+  const maxX = window.innerWidth - contextMenu.offsetWidth - margin;
+  const maxY = window.innerHeight - contextMenu.offsetHeight - margin;
+  const clampedX = Math.min(Math.max(x, margin), Math.max(margin, maxX));
+  const clampedY = Math.min(Math.max(y, margin), Math.max(margin, maxY));
+
+  contextMenu.style.left = `${clampedX}px`;
+  contextMenu.style.top = `${clampedY}px`;
 }
 
 function saveWindowPosition(position: WindowPositionSnapshot): void {
@@ -212,6 +288,8 @@ function clearReconnectTimer(): void {
 
 function scheduleReconnect(reason: string): void {
   clearReconnectTimer();
+  state.lastConnectionReason = reason;
+  render();
   showBubble(reason, 1500);
   state.reconnectTimer = window.setTimeout(() => {
     state.reconnectTimer = null;
@@ -241,16 +319,7 @@ function sendReadyEvent(): void {
   sendEnvelope("pet.ready", {
     client_id: state.config.client_id,
     platform: "windows",
-    capabilities: [
-      "bubble",
-      "movement",
-      "tap-open-chat",
-      "drag-reposition",
-      "reactive-animations",
-      "perch-memory",
-      "ambient-dialogue",
-      "character-themes"
-    ]
+    capabilities: petCompanionCapabilities
   });
 }
 
@@ -261,6 +330,89 @@ function sendTapEvents(): void {
 
 function sendDismissed(source: string): void {
   sendEnvelope("pet.dismissed", { source });
+}
+
+function parseProviderOverview(
+  payload?: Record<string, unknown>,
+): ProviderOverviewPayload | null {
+  if (!payload) {
+    return null;
+  }
+
+  const totalProviderCount = payload.total_provider_count;
+  const availableProviderCount = payload.available_provider_count;
+  const needsAttentionProviderCount = payload.needs_attention_provider_count;
+
+  if (
+    typeof totalProviderCount !== "number" ||
+    typeof availableProviderCount !== "number" ||
+    typeof needsAttentionProviderCount !== "number"
+  ) {
+    return null;
+  }
+
+  const providers = Array.isArray(payload.providers)
+    ? payload.providers
+        .map((item) => {
+          if (!item || typeof item !== "object") {
+            return null;
+          }
+
+          const candidate = item as Record<string, unknown>;
+          if (
+            typeof candidate.provider_type !== "string" ||
+            typeof candidate.display_name !== "string" ||
+            typeof candidate.total_count !== "number" ||
+            typeof candidate.healthy_count !== "number" ||
+            typeof candidate.available !== "boolean" ||
+            typeof candidate.needs_attention !== "boolean"
+          ) {
+            return null;
+          }
+
+          return {
+            provider_type: candidate.provider_type,
+            display_name: candidate.display_name,
+            total_count: candidate.total_count,
+            healthy_count: candidate.healthy_count,
+            available: candidate.available,
+            needs_attention: candidate.needs_attention
+          } satisfies ProviderOverviewItem;
+        })
+        .filter((item): item is ProviderOverviewItem => item !== null)
+    : [];
+
+  return {
+    providers,
+    total_provider_count: totalProviderCount,
+    available_provider_count: availableProviderCount,
+    needs_attention_provider_count: needsAttentionProviderCount
+  };
+}
+
+function announceProviderOverview(payload: ProviderOverviewPayload): void {
+  const fingerprint = providerOverviewFingerprint(payload);
+  state.latestProviderOverview = payload;
+  state.lastProviderOverviewAt = Date.now();
+  render();
+
+  if (fingerprint === state.providerOverviewFingerprint) {
+    return;
+  }
+
+  state.providerOverviewFingerprint = fingerprint;
+
+  const shouldInterruptCurrentBubble =
+    payload.total_provider_count === 0 ||
+    payload.available_provider_count === 0 ||
+    payload.needs_attention_provider_count > 0;
+
+  if (!state.bubbleText || shouldInterruptCurrentBubble) {
+    showBubble(
+      providerOverviewBubbleText(payload),
+      shouldInterruptCurrentBubble ? 2100 : 1500,
+    );
+  }
 }
 
 function randomAmbientLine(): string | null {
@@ -332,6 +484,13 @@ async function handleIncomingMessage(rawText: string): Promise<void> {
     case "pet.open_chat_anchor":
       showBubble("点我打开 Lime 对话", 1600);
       break;
+    case "pet.provider_overview": {
+      const overview = parseProviderOverview(envelope.payload);
+      if (overview) {
+        announceProviderOverview(overview);
+      }
+      break;
+    }
     default:
       break;
   }
@@ -339,6 +498,9 @@ async function handleIncomingMessage(rawText: string): Promise<void> {
 
 async function connectSocket(): Promise<void> {
   if (!state.config?.endpoint) {
+    state.endpointLabel = "未配置";
+    state.lastConnectionReason = "未配置 Lime Companion 地址";
+    render();
     showBubble("未配置 Lime Companion 地址", 1800);
     return;
   }
@@ -354,6 +516,9 @@ async function connectSocket(): Promise<void> {
 
   socket.addEventListener("open", () => {
     state.connected = true;
+    state.endpointLabel = state.config?.endpoint ?? state.endpointLabel;
+    state.lastConnectionReason = null;
+    state.hasConnectedOnce = true;
     render();
     sendReadyEvent();
     showBubble("已连接到 Lime", 1200);
@@ -393,10 +558,95 @@ async function handlePetTap(): Promise<void> {
   sendTapEvents();
 }
 
+function requestPetCheer(source: string): void {
+  if (!state.connected) {
+    showBubble("Lime 还没连上，我先等它", 1400);
+    clearReconnectTimer();
+    void connectSocket();
+    return;
+  }
+
+  showBubble("青柠想一句鼓励给你…", 1400);
+  sendEnvelope("pet.request_pet_cheer", { source });
+}
+
+function requestPetNextStep(source: string): void {
+  if (!state.connected) {
+    showBubble("Lime 还没连上，我先等它", 1400);
+    clearReconnectTimer();
+    void connectSocket();
+    return;
+  }
+
+  showBubble("青柠在想你的下一步…", 1400);
+  sendEnvelope("pet.request_pet_next_step", { source });
+}
+
+function dispatchTapAction(): void {
+  const tapCount = state.tapCount;
+  state.tapCount = 0;
+  if (state.tapTimer !== null) {
+    window.clearTimeout(state.tapTimer);
+    state.tapTimer = null;
+  }
+
+  if (tapCount >= 3) {
+    requestPetNextStep("triple_tap");
+    return;
+  }
+
+  if (tapCount === 2) {
+    requestPetCheer("double_tap");
+    return;
+  }
+
+  void handlePetTap();
+}
+
+function registerPetTap(): void {
+  state.tapCount = Math.min(state.tapCount + 1, 3);
+  if (state.tapTimer !== null) {
+    window.clearTimeout(state.tapTimer);
+  }
+  state.tapTimer = window.setTimeout(() => {
+    dispatchTapAction();
+  }, 320);
+}
+
 async function hidePetFromMenu(): Promise<void> {
   sendDismissed("menu");
   setPetState("hidden");
   await appWindow.hide();
+}
+
+function reconnectFromMenu(): void {
+  clearReconnectTimer();
+  showBubble("正在尝试重新连接 Lime…", 1200);
+  void connectSocket();
+}
+
+function requestProviderOverviewSync(source: string): void {
+  if (!state.connected) {
+    showBubble("Lime 还没连上，我先等它", 1400);
+    clearReconnectTimer();
+    void connectSocket();
+    return;
+  }
+
+  showBubble("正在请求同步桌宠摘要…", 1200);
+  sendEnvelope("pet.request_provider_overview_sync", { source });
+}
+
+function openProviderSettings(source: string): void {
+  if (!state.connected) {
+    showBubble("Lime 还没连上，我先等它", 1400);
+    clearReconnectTimer();
+    void connectSocket();
+    return;
+  }
+
+  showBubble("正在打开 AI 服务商设置…", 1200);
+  sendEnvelope("pet.open_provider_settings", { source });
 }
 
 async function quitApp(): Promise<void> {
@@ -416,6 +666,15 @@ function bindContextMenuActions(): void {
     closeContextMenu();
 
     switch (action) {
+      case "reconnect":
+        reconnectFromMenu();
+        break;
+      case "sync-provider-overview":
+        requestProviderOverviewSync("context_menu");
+        break;
+      case "provider-settings":
+        openProviderSettings("context_menu");
+        break;
       case "recenter":
         void centerWindowOnCurrentMonitor().then(() => showBubble("回到屏幕中央啦", 1200));
         break;
@@ -475,7 +734,7 @@ function bindWindowGestures(): void {
     state.dragCandidate = null;
 
     if (shouldTap) {
-      void handlePetTap();
+      registerPetTap();
     }
   });
 
@@ -512,13 +771,14 @@ async function initializeWindowBehavior(): Promise<void> {
 
 async function bootstrap(): Promise<void> {
   state.config = await invoke<LaunchConfig>("load_launch_config");
+  state.endpointLabel = state.config.endpoint ?? "未配置";
   render();
   bindContextMenuActions();
   bindWindowGestures();
   restartAmbientLoop();
   await initializeWindowBehavior();
   await connectSocket();
-  showBubble("拖拽我换个位置，轻点我打开 Lime", 1800);
+  showBubble("轻点打开 Lime，双击听青柠一句话，三击拿下一步建议", 2200);
 }
 
 void bootstrap();

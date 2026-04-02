@@ -14,9 +14,11 @@
 - 支持拖拽重定位，松手后会记住停靠位置，下次启动自动回到上次区域
 - 本地 `WebSocket` companion 协议客户端
 - 点击桌宠后向 Lime 发送 `pet.clicked` / `pet.open_chat`
+- 单击 / 双击 / 三击支持不同动作：单击唤起 Lime，双击生成一句青柠鼓励，三击生成一句“下一步建议”
 - 断线时会给出提示气泡并自动重连
 - 空闲时会有轻量陪伴气泡，不打断主流程
 - 菜单栏支持重连、回到屏幕中央、左/中/右停靠、显示 / 隐藏桌宠
+- macOS 菜单栏与桌宠右键菜单、Windows 桌宠右键菜单都可直接查看 Companion 连接诊断、最近同步时间与脱敏服务商摘要，并可主动请求 Lime 立即重发摘要
 - 接收 Lime 发来的 `pet.show` / `pet.hide` / `pet.state_changed` / `pet.show_bubble`
 - GitHub Actions 质量校验与 tag 发布流程
 - Windows companion 预览壳：透明无边框、始终置顶、可拖拽、点击唤起、右键菜单、位置记忆与基础氛围动画
@@ -68,27 +70,27 @@ open "dist/Lime Pet.app"
 本地生成 release zip：
 
 ```bash
-./scripts/package-release.sh --version "0.2.0" --build-number "1"
+./scripts/package-release.sh --version "0.3.0" --build-number "1"
 ```
 
-产物默认输出到：
+产物默认会按当前宿主架构输出，例如 Apple Silicon 机器上会得到：
 
 ```text
-dist/release/LimePet-v0.2.0-macos-unsigned.zip
-dist/release/LimePet-v0.2.0-macos-unsigned.zip.sha256
+dist/release/LimePet-v0.3.0-macos-arm64-unsigned.zip
+dist/release/LimePet-v0.3.0-macos-arm64-unsigned.zip.sha256
 ```
 
 GitHub Actions 发布策略：
 
 - `ci.yml`
   - 在 `pull_request`、`push main`、`workflow_dispatch` 时执行
-  - 校验 macOS debug `.app` 可构建
+  - 校验 macOS Apple Silicon 与 macOS Intel 两条构建链都能产出 `.app` 与 release preview
   - 校验 Windows companion 可打出 installer preview
-  - 额外上传 macOS zip 与 Windows NSIS preview，确保发布链路不腐坏
+  - 额外上传 `macos-arm64`、`macos-x64` 与 Windows NSIS preview，确保发布链路不腐坏
 - `release.yml`
   - 在推送 `v*` tag 时自动执行
   - 也支持手动 `workflow_dispatch`
-  - 会同时上传 macOS zip / `sha256` 与 Windows NSIS installer，并发布到 GitHub Release
+  - 会同时上传 `macos-arm64`、`macos-x64` 两个 macOS zip / `sha256` 与 Windows NSIS installer，并发布到 GitHub Release
 
 ## Windows 本地开发
 

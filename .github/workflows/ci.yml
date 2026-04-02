@@ -16,8 +16,18 @@ concurrency:
 
 jobs:
   build-macos:
-    name: Build And Package
-    runs-on: macos-latest
+    name: Build macOS Preview (${{ matrix.label }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            label: Apple Silicon
+            artifact_suffix: macos-arm64
+          - runner: macos-15-intel
+            label: Intel
+            artifact_suffix: macos-x64
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -39,13 +49,13 @@ jobs:
           test -f "dist/Lime Pet.app/Contents/Info.plist"
 
       - name: Build release package preview
-        run: ./scripts/package-release.sh --version "0.0.0-ci" --build-number "${{ github.run_number }}"
+        run: ./scripts/package-release.sh --version "0.0.0-ci" --build-number "${{ github.run_number }}" --artifact-suffix "${{ matrix.artifact_suffix }}"
 
       - name: Upload macOS preview artifact
         if: success()
         uses: actions/upload-artifact@v6
         with:
-          name: lime-pet-macos-preview
+          name: lime-pet-${{ matrix.artifact_suffix }}-preview
           path: |
             dist/release/*.zip
             dist/release/*.sha256
