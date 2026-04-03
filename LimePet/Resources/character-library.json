@@ -1009,6 +1009,64 @@
           "sadness": 1,
           "surprise": 3
         },
+        "emotionActions": {
+          "neutral": {
+            "expression": "neutral",
+            "motion": {
+              "group": "Idle",
+              "index": 0
+            }
+          },
+          "joy": {
+            "expression": "joy",
+            "motion": {
+              "group": "",
+              "index": 3
+            }
+          },
+          "smirk": {
+            "expression": "smirk",
+            "motion": {
+              "group": "",
+              "index": 2
+            }
+          },
+          "surprise": {
+            "expression": "surprise",
+            "motion": {
+              "group": "",
+              "index": 4
+            }
+          },
+          "sadness": {
+            "expression": "sadness",
+            "motion": {
+              "group": "",
+              "index": 1
+            }
+          },
+          "fear": {
+            "expression": "fear",
+            "motion": {
+              "group": "",
+              "index": 1
+            }
+          },
+          "anger": {
+            "expression": "anger",
+            "motion": {
+              "group": "",
+              "index": 5
+            }
+          },
+          "disgust": {
+            "expression": "disgust",
+            "motion": {
+              "group": "",
+              "index": 5
+            }
+          }
+        },
         "stateActions": {
           "idle": {
             "expression": "neutral",
@@ -1308,6 +1366,56 @@
         "offsetX": 0,
         "offsetY": -4,
         "emotionMap": {},
+        "emotionActions": {
+          "neutral": {
+            "motion": {
+              "group": "Idle",
+              "index": 0
+            }
+          },
+          "joy": {
+            "motion": {
+              "group": "Tap",
+              "index": 0
+            }
+          },
+          "smirk": {
+            "motion": {
+              "group": "Tap",
+              "index": 0
+            }
+          },
+          "surprise": {
+            "motion": {
+              "group": "FlickUp",
+              "index": 0
+            }
+          },
+          "fear": {
+            "motion": {
+              "group": "FlickUp",
+              "index": 0
+            }
+          },
+          "sadness": {
+            "motion": {
+              "group": "FlickUp",
+              "index": 0
+            }
+          },
+          "anger": {
+            "motion": {
+              "group": "Flick3",
+              "index": 0
+            }
+          },
+          "disgust": {
+            "motion": {
+              "group": "Flick3",
+              "index": 0
+            }
+          }
+        },
         "stateActions": {
           "idle": {
             "motion": {

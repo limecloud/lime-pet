@@ -38,6 +38,7 @@ struct PetLive2DConfiguration: Codable, Hashable {
     let offsetX: Double
     let offsetY: Double
     let emotionMap: [String: Int]
+    let emotionActions: [String: PetLive2DStateAction]?
     let stateActions: PetLive2DStateActions
     let tapActions: PetLive2DTapActions
 
@@ -56,6 +57,40 @@ struct PetLive2DConfiguration: Codable, Hashable {
         tags.compactMap { emotionMap[$0.lowercased()] }
     }
 
+    func resolvedIncomingAction(
+        rawExpressions: [CompanionLive2DExpressionValue],
+        emotionTags: [String],
+        preferredMotion: PetLive2DMotion?
+    ) -> PetLive2DResolvedActionContent? {
+        let lowercasedTags = emotionTags.map { $0.lowercased() }
+        let resolved = resolvedExpressions(from: rawExpressions) + resolvedExpressions(from: lowercasedTags)
+        var expressionIndices: [Int] = []
+        var seenIndices = Set<Int>()
+        for index in resolved where seenIndices.insert(index).inserted {
+            expressionIndices.append(index)
+        }
+
+        var motion = preferredMotion
+        for tag in lowercasedTags {
+            guard let action = emotionActions?[tag] else { continue }
+
+            for index in resolvedExpressions(from: action.expression.map { [$0] } ?? [])
+            where seenIndices.insert(index).inserted {
+                expressionIndices.append(index)
+            }
+
+            if motion == nil {
+                motion = action.motion
+            }
+        }
+
+        let content = PetLive2DResolvedActionContent(
+            expressionIndices: expressionIndices,
+            motion: motion
+        )
+        return content.hasEffect ? content : nil
+    }
+
     func resolvedStateAction(for state: PetState) -> PetLive2DResolvedActionContent? {
         let sourceAction: PetLive2DStateAction?
         switch state {
@@ -72,11 +107,11 @@ struct PetLive2DConfiguration: Codable, Hashable {
         }
 
         guard let sourceAction else { return nil }
-        let expressions = resolvedExpressions(from: sourceAction.expression.map { [$0] } ?? [])
-        return PetLive2DResolvedActionContent(
-            expressionIndices: expressions,
+        let content = PetLive2DResolvedActionContent(
+            expressionIndices: resolvedExpressions(from: sourceAction.expression.map { [$0] } ?? []),
             motion: sourceAction.motion
         )
+        return content.hasEffect ? content : nil
     }
 }
 

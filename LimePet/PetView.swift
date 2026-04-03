@@ -8,6 +8,8 @@ struct PetView: View {
     let onDragEnded: (DragGesture.Value) -> Void
     let onCharacterSelected: (String) -> Void
     let onChatRequested: () -> Void
+    let onVoiceChatRequested: () -> Void
+    let onChatResetRequested: () -> Void
     let onOpenProviderSettingsRequested: () -> Void
     let onSyncProviderOverviewRequested: () -> Void
     let onReconnectRequested: () -> Void
@@ -78,6 +80,14 @@ struct PetView: View {
 
             Button("和我说话…") {
                 onChatRequested()
+            }
+
+            Button("语音和我说话") {
+                onVoiceChatRequested()
+            }
+
+            Button("清空聊天记忆") {
+                onChatResetRequested()
             }
 
             Divider()

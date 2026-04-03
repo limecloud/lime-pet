@@ -70,6 +70,37 @@ open "dist/Lime Pet.app"
 
 这条链路基于 `Swift Package Manager` 构建可执行文件，再由脚本封装成 `.app`。它适合本地开发、调试和快速验证；当前仓库的 GitHub Actions 也已经统一走这条路径，避免本地与 CI 使用两套不同构建主线。
 
+如果你正在联调 `lime` 主宿主与桌宠语音链路，也可以直接跑：
+
+```bash
+./scripts/run-companion-dev-stack.sh
+```
+
+这条脚本会：
+
+- 用 `local-whisper` 特性构建 `lime` 宿主
+- 自动重启本地 `lime` companion 监听进程
+- 重新启动 `LimePet`
+
+默认会从 `../aiclientproxy/lime` 查找主仓；如果你的主仓不在这个位置，可以先指定：
+
+```bash
+LIME_ROOT="/absolute/path/to/lime" ./scripts/run-companion-dev-stack.sh
+```
+
+如果你只是想快速确认当前联调栈是否健康，可以跑：
+
+```bash
+./scripts/check-companion-dev-stack.sh
+```
+
+它会检查：
+
+- `DevBridge` 是否在线
+- 当前默认 ASR 凭证是否存在
+- 桌宠是否连上 `45554`
+- 如果本地有 `STT` 测试样本，还会顺手打一遍本地 Whisper 转写
+
 ## 发布产物
 
 本地生成 release bundle：

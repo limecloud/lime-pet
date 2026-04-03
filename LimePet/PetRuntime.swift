@@ -301,6 +301,14 @@ final class PetCoordinator: NSObject {
         promptConversation(source: "menu")
     }
 
+    @objc private func promptVoiceConversationMenuAction() {
+        requestVoiceConversation(source: "menu")
+    }
+
+    @objc private func resetConversationMenuAction() {
+        requestChatReset(source: "menu")
+    }
+
     @objc private func quit() {
         NSApp.terminate(nil)
     }
@@ -384,6 +392,12 @@ final class PetCoordinator: NSObject {
             onChatRequested: { [weak self] in
                 self?.promptConversation(source: "context_menu")
             },
+            onVoiceChatRequested: { [weak self] in
+                self?.requestVoiceConversation(source: "context_menu")
+            },
+            onChatResetRequested: { [weak self] in
+                self?.requestChatReset(source: "context_menu")
+            },
             onOpenProviderSettingsRequested: { [weak self] in
                 self?.requestOpenProviderSettings(source: "context_menu")
             },
@@ -431,6 +445,14 @@ final class PetCoordinator: NSObject {
         let chatItem = NSMenuItem(title: "和我说话…", action: #selector(promptConversationMenuAction), keyEquivalent: "t")
         chatItem.target = self
         menu.addItem(chatItem)
+
+        let voiceChatItem = NSMenuItem(title: "语音和我说话", action: #selector(promptVoiceConversationMenuAction), keyEquivalent: "v")
+        voiceChatItem.target = self
+        menu.addItem(voiceChatItem)
+
+        let resetChatItem = NSMenuItem(title: "清空聊天记忆", action: #selector(resetConversationMenuAction), keyEquivalent: "k")
+        resetChatItem.target = self
+        menu.addItem(resetChatItem)
 
         menu.addItem(NSMenuItem.separator())
 
@@ -710,13 +732,6 @@ final class PetCoordinator: NSObject {
             return
         }
 
-        let resolved = live2d.resolvedExpressions(from: payload.expressions) + live2d.resolvedExpressions(from: payload.emotionTags)
-        var expressionIndices: [Int] = []
-        var seenIndices = Set<Int>()
-        for index in resolved where seenIndices.insert(index).inserted {
-            expressionIndices.append(index)
-        }
-
         let motion: PetLive2DMotion?
         if let motionGroup = payload.motionGroup, let motionIndex = payload.motionIndex {
             motion = PetLive2DMotion(group: motionGroup, index: motionIndex)
@@ -725,9 +740,10 @@ final class PetCoordinator: NSObject {
         }
 
         queueLive2DAction(
-            PetLive2DResolvedActionContent(
-                expressionIndices: expressionIndices,
-                motion: motion
+            live2d.resolvedIncomingAction(
+                rawExpressions: payload.expressions,
+                emotionTags: payload.emotionTags,
+                preferredMotion: motion
             )
         )
     }
@@ -1031,6 +1047,36 @@ final class PetCoordinator: NSObject {
         sceneModel.showBubble("我来想想怎么回答你…", autoHideMs: 1500)
         resetPatrolCycle(startPaused: true)
         ipcClient.requestChatReply(text: normalizedText, source: source)
+    }
+
+    private func requestChatReset(source: String) {
+        sceneModel.setDragging(false)
+        sceneModel.markInteraction()
+
+        guard sceneModel.isConnected else {
+            sceneModel.showBubble("Lime 还没连上，我先等它", autoHideMs: 1400)
+            ipcClient.reconnect()
+            return
+        }
+
+        sceneModel.showBubble("好呀，我们从这句重新开始聊", autoHideMs: 1500)
+        resetPatrolCycle(startPaused: true)
+        ipcClient.requestChatReset(source: source)
+    }
+
+    private func requestVoiceConversation(source: String) {
+        sceneModel.setDragging(false)
+        sceneModel.markInteraction()
+
+        guard sceneModel.isConnected else {
+            sceneModel.showBubble("Lime 还没连上，我先等它", autoHideMs: 1400)
+            ipcClient.reconnect()
+            return
+        }
+
+        sceneModel.showBubble("你说吧，我在认真听", autoHideMs: 1600)
+        resetPatrolCycle(startPaused: true)
+        ipcClient.requestVoiceChat(source: source)
     }
 
     private func requestOpenProviderSettings(source: String) {

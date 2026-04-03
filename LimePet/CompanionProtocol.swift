@@ -16,6 +16,8 @@ let petCompanionCapabilities = [
     "provider-sync-request",
     "open-provider-settings",
     "chat-request",
+    "chat-reset",
+    "voice-chat-request",
     "bubble-speech",
     "multi-tap-actions",
     "live2d-renderer",
@@ -50,6 +52,8 @@ enum CompanionEventType: String {
     case requestPetCheer = "pet.request_pet_cheer"
     case requestPetNextStep = "pet.request_pet_next_step"
     case requestChatReply = "pet.request_chat_reply"
+    case requestChatReset = "pet.request_chat_reset"
+    case requestVoiceChat = "pet.request_voice_chat"
 }
 
 enum IncomingCommand {

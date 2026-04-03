@@ -74,6 +74,14 @@ final class PetIPCClient: NSObject {
         )
     }
 
+    func requestChatReset(source: String) {
+        send(event: .requestChatReset, payload: InteractionPayload(source: source))
+    }
+
+    func requestVoiceChat(source: String) {
+        send(event: .requestVoiceChat, payload: InteractionPayload(source: source))
+    }
+
     private func sendReadyEvent() {
         send(
             event: .ready,
