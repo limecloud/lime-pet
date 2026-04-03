@@ -62,9 +62,12 @@ ZIP_CHECKSUM_PATH="${ZIP_PATH}.sha256"
 DMG_PATH="${RELEASE_DIR}/LimePet-${TAG_VERSION}-${ARTIFACT_SUFFIX}.dmg"
 DMG_CHECKSUM_PATH="${DMG_PATH}.sha256"
 DMG_STAGE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/lime-pet-dmg.XXXXXX")"
+DMG_WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/lime-pet-dmg-work.XXXXXX")"
+DMG_RW_PATH="${DMG_WORK_DIR}/LimePet-${TAG_VERSION}-${ARTIFACT_SUFFIX}-temp.sparseimage"
 
 cleanup() {
   rm -rf "${DMG_STAGE_DIR}"
+  rm -rf "${DMG_WORK_DIR}"
 }
 
 trap cleanup EXIT
@@ -85,9 +88,16 @@ ln -s "/Applications" "${DMG_STAGE_DIR}/Applications"
 hdiutil create \
   -volname "Lime Pet" \
   -srcfolder "${DMG_STAGE_DIR}" \
+  -fs HFS+ \
+  -format UDSP \
+  -ov \
+  "${DMG_RW_PATH}" >/dev/null
+
+hdiutil convert \
+  "${DMG_RW_PATH}" \
   -format UDZO \
   -ov \
-  "${DMG_PATH}" >/dev/null
+  -o "${DMG_PATH}" >/dev/null
 
 DMG_CHECKSUM="$(shasum -a 256 "${DMG_PATH}" | awk '{print $1}')"
 printf '%s  %s\n' "${DMG_CHECKSUM}" "$(basename "${DMG_PATH}")" > "${DMG_CHECKSUM_PATH}"

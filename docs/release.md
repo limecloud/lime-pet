@@ -25,16 +25,16 @@
 ## 本地发布命令
 
 ```bash
-./scripts/package-release.sh --version "0.3.3" --build-number "1"
+./scripts/package-release.sh --version "0.3.4" --build-number "1"
 ```
 
 默认产物会按当前宿主架构命名，例如 Apple Silicon 机器上会得到：
 
 ```text
-dist/release/LimePet-v0.3.3-macos-arm64.dmg
-dist/release/LimePet-v0.3.3-macos-arm64.dmg.sha256
-dist/release/LimePet-v0.3.3-macos-arm64-unsigned.zip
-dist/release/LimePet-v0.3.3-macos-arm64-unsigned.zip.sha256
+dist/release/LimePet-v0.3.4-macos-arm64.dmg
+dist/release/LimePet-v0.3.4-macos-arm64.dmg.sha256
+dist/release/LimePet-v0.3.4-macos-arm64-unsigned.zip
+dist/release/LimePet-v0.3.4-macos-arm64-unsigned.zip.sha256
 ```
 
 Windows 本地产物命令：

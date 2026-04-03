@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "发布版本，例如 v0.3.3"
+        description: "发布版本，例如 v0.3.4"
         required: true
-        default: "v0.3.3"
+        default: "v0.3.4"
       source_ref:
         description: "构建所用 Git ref，例如 main 或某个 commit/tag"
         required: false
