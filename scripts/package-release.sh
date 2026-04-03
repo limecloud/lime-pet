@@ -83,7 +83,6 @@ ZIP_CHECKSUM="$(shasum -a 256 "${ZIP_PATH}" | awk '{print $1}')"
 printf '%s  %s\n' "${ZIP_CHECKSUM}" "$(basename "${ZIP_PATH}")" > "${ZIP_CHECKSUM_PATH}"
 
 cp -R "${APP_PATH}" "${DMG_STAGE_DIR}/Lime Pet.app"
-ln -s "/Applications" "${DMG_STAGE_DIR}/Applications"
 
 hdiutil create \
   -volname "Lime Pet" \
