@@ -14,25 +14,27 @@
   - Windows 侧统一走 `WindowsPet/` 下的 `Tauri v2` 构建链路
   - 会验证 macOS debug `.app` 可构建
   - 会验证 Windows companion 可打出 NSIS installer preview
-  - 会上传 `macos-arm64`、`macos-x64` 预览 zip 与 Windows preview installer
+  - 会上传 `macos-arm64`、`macos-x64` 预览 dmg、zip 与 Windows preview installer
 - `release.yml`
   - 用于 tag / `workflow_dispatch`
   - macOS 侧统一走 `scripts/package-release.sh`
   - Windows 侧统一走 `WindowsPet npm run tauri build`
-  - 默认产出 `macos-arm64`、`macos-x64` 两份 macOS unsigned zip / `sha256` 与 Windows NSIS installer
+  - 默认产出 `macos-arm64`、`macos-x64` 两份 macOS dmg、unsigned zip、对应 `sha256` 与 Windows NSIS installer
   - tag 触发时会自动发布到 GitHub Release
 
 ## 本地发布命令
 
 ```bash
-./scripts/package-release.sh --version "0.3.2" --build-number "1"
+./scripts/package-release.sh --version "0.3.3" --build-number "1"
 ```
 
 默认产物会按当前宿主架构命名，例如 Apple Silicon 机器上会得到：
 
 ```text
-dist/release/LimePet-v0.3.2-macos-arm64-unsigned.zip
-dist/release/LimePet-v0.3.2-macos-arm64-unsigned.zip.sha256
+dist/release/LimePet-v0.3.3-macos-arm64.dmg
+dist/release/LimePet-v0.3.3-macos-arm64.dmg.sha256
+dist/release/LimePet-v0.3.3-macos-arm64-unsigned.zip
+dist/release/LimePet-v0.3.3-macos-arm64-unsigned.zip.sha256
 ```
 
 Windows 本地产物命令：
@@ -78,12 +80,12 @@ WindowsPet/src-tauri/target/release/bundle/nsis/*.exe
 - `APPLE_ID`
 - `APPLE_APP_SPECIFIC_PASSWORD`
 
-当前仓库先不强制启用这些 secret，保证 v1 能先稳定打 unsigned 包。
+当前仓库先不强制启用这些 secret，保证 v1 能先稳定打 unsigned zip 与未 notarize 的 dmg。
 
 ## 与 Lime 主仓的关系
 
 这里参考了 `lime` 主仓的发布思路，但按 `lime-pet` 当前阶段做了收敛：
 
 - 保留 `Quality` / `Release` 两条主线，而不是把开发构建、发布构建、签名构建拆成多套
-- 当前不强制 Apple 签名 secrets，先保证 tag 即可稳定产出 unsigned 下载包
+- 当前不强制 Apple 签名 secrets，先保证 tag 即可稳定产出 unsigned zip 与 dmg 下载包
 - 当前已经覆盖 macOS 与 Windows 两个 companion 壳，但仍保持最小必要矩阵，不额外引入伪跨平台壳层抽象

@@ -58,7 +58,16 @@ APP_PATH="$("${SCRIPT_DIR}/build-app.sh" \
   --build-number "${BUILD_NUMBER}")"
 
 ZIP_PATH="${RELEASE_DIR}/LimePet-${TAG_VERSION}-${ARTIFACT_SUFFIX}-unsigned.zip"
-CHECKSUM_PATH="${ZIP_PATH}.sha256"
+ZIP_CHECKSUM_PATH="${ZIP_PATH}.sha256"
+DMG_PATH="${RELEASE_DIR}/LimePet-${TAG_VERSION}-${ARTIFACT_SUFFIX}.dmg"
+DMG_CHECKSUM_PATH="${DMG_PATH}.sha256"
+DMG_STAGE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/lime-pet-dmg.XXXXXX")"
+
+cleanup() {
+  rm -rf "${DMG_STAGE_DIR}"
+}
+
+trap cleanup EXIT
 
 rm -rf "${RELEASE_DIR}"
 mkdir -p "${RELEASE_DIR}"
@@ -67,7 +76,21 @@ ditto -c -k --sequesterRsrc --keepParent \
   "${APP_PATH}" \
   "${ZIP_PATH}"
 
-CHECKSUM="$(shasum -a 256 "${ZIP_PATH}" | awk '{print $1}')"
-printf '%s  %s\n' "${CHECKSUM}" "$(basename "${ZIP_PATH}")" > "${CHECKSUM_PATH}"
+ZIP_CHECKSUM="$(shasum -a 256 "${ZIP_PATH}" | awk '{print $1}')"
+printf '%s  %s\n' "${ZIP_CHECKSUM}" "$(basename "${ZIP_PATH}")" > "${ZIP_CHECKSUM_PATH}"
+
+cp -R "${APP_PATH}" "${DMG_STAGE_DIR}/Lime Pet.app"
+ln -s "/Applications" "${DMG_STAGE_DIR}/Applications"
+
+hdiutil create \
+  -volname "Lime Pet" \
+  -srcfolder "${DMG_STAGE_DIR}" \
+  -format UDZO \
+  -ov \
+  "${DMG_PATH}" >/dev/null
+
+DMG_CHECKSUM="$(shasum -a 256 "${DMG_PATH}" | awk '{print $1}')"
+printf '%s  %s\n' "${DMG_CHECKSUM}" "$(basename "${DMG_PATH}")" > "${DMG_CHECKSUM_PATH}"
 
 printf '%s\n' "${ZIP_PATH}"
+printf '%s\n' "${DMG_PATH}"

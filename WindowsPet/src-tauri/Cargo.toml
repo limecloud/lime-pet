@@ -1,6 +1,6 @@
 [package]
 name = "lime-pet-windows"
-version = "0.3.2"
+version = "0.3.3"
 description = "Windows companion shell for Lime Pet"
 authors = ["Lime Team"]
 edition = "2021"

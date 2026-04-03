@@ -72,17 +72,19 @@ open "dist/Lime Pet.app"
 
 ## 发布产物
 
-本地生成 release zip：
+本地生成 release bundle：
 
 ```bash
-./scripts/package-release.sh --version "0.3.2" --build-number "1"
+./scripts/package-release.sh --version "0.3.3" --build-number "1"
 ```
 
 产物默认会按当前宿主架构输出，例如 Apple Silicon 机器上会得到：
 
 ```text
-dist/release/LimePet-v0.3.2-macos-arm64-unsigned.zip
-dist/release/LimePet-v0.3.2-macos-arm64-unsigned.zip.sha256
+dist/release/LimePet-v0.3.3-macos-arm64.dmg
+dist/release/LimePet-v0.3.3-macos-arm64.dmg.sha256
+dist/release/LimePet-v0.3.3-macos-arm64-unsigned.zip
+dist/release/LimePet-v0.3.3-macos-arm64-unsigned.zip.sha256
 ```
 
 GitHub Actions 发布策略：
@@ -95,7 +97,7 @@ GitHub Actions 发布策略：
 - `release.yml`
   - 在推送 `v*` tag 时自动执行
   - 也支持手动 `workflow_dispatch`
-  - 会同时上传 `macos-arm64`、`macos-x64` 两个 macOS zip / `sha256` 与 Windows NSIS installer，并发布到 GitHub Release
+  - 会同时上传 `macos-arm64`、`macos-x64` 两个 macOS dmg、unsigned zip、对应 `sha256` 与 Windows NSIS installer，并发布到 GitHub Release
 
 ## Windows 本地开发
 

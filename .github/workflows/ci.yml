@@ -57,6 +57,7 @@ jobs:
         with:
           name: lime-pet-${{ matrix.artifact_suffix }}-preview
           path: |
+            dist/release/*.dmg
             dist/release/*.zip
             dist/release/*.sha256
 
