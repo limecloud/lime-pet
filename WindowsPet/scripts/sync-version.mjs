@@ -8,7 +8,7 @@ const projectRoot = path.resolve(currentDir, "..");
 const version = process.argv[2]?.trim().replace(/^v/, "");
 
 if (!version) {
-  console.error("请提供版本号，例如 0.3.1 或 v0.3.1");
+  console.error("请提供版本号，例如 0.3.2 或 v0.3.2");
   process.exit(1);
 }
 

@@ -17,6 +17,8 @@
 		C20000010000000000000008 /* PetCharacterRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000020000000000000009 /* PetCharacterRenderer.swift */; };
 		C20000010000000000000009 /* character-library.json in Resources */ = {isa = PBXBuildFile; fileRef = C2000002000000000000000A /* character-library.json */; };
 		C2000001000000000000000A /* dewy-lime-shadow.png in Resources */ = {isa = PBXBuildFile; fileRef = C2000002000000000000000B /* dewy-lime-shadow.png */; };
+		C2000001000000000000000B /* PetConversationPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000002000000000000000C /* PetConversationPrompt.swift */; };
+		C2000001000000000000000C /* PetSpeechCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000002000000000000000D /* PetSpeechCoordinator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +33,8 @@
 		C20000020000000000000009 /* PetCharacterRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetCharacterRenderer.swift; sourceTree = "<group>"; };
 		C2000002000000000000000A /* character-library.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "character-library.json"; sourceTree = "<group>"; };
 		C2000002000000000000000B /* dewy-lime-shadow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "dewy-lime-shadow.png"; sourceTree = "<group>"; };
+		C2000002000000000000000C /* PetConversationPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetConversationPrompt.swift; sourceTree = "<group>"; };
+		C2000002000000000000000D /* PetSpeechCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetSpeechCoordinator.swift; sourceTree = "<group>"; };
 		C20000030000000000000001 /* Lime Pet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Lime Pet.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -64,6 +68,8 @@
 				C20000020000000000000007 /* PetPlacement.swift */,
 				C20000020000000000000008 /* PetCharacterLibrary.swift */,
 				C20000020000000000000009 /* PetCharacterRenderer.swift */,
+				C2000002000000000000000C /* PetConversationPrompt.swift */,
+				C2000002000000000000000D /* PetSpeechCoordinator.swift */,
 				C20000050000000000000004 /* Resources */,
 				C20000020000000000000006 /* Info.plist */,
 			);
@@ -166,6 +172,8 @@
 				C20000010000000000000006 /* PetPlacement.swift in Sources */,
 				C20000010000000000000007 /* PetCharacterLibrary.swift in Sources */,
 				C20000010000000000000008 /* PetCharacterRenderer.swift in Sources */,
+				C2000001000000000000000B /* PetConversationPrompt.swift in Sources */,
+				C2000001000000000000000C /* PetSpeechCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -250,7 +258,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.1;
+				MARKETING_VERSION = 0.3.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.lime.pet;
 				PRODUCT_NAME = "Lime Pet";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -269,7 +277,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.1;
+				MARKETING_VERSION = 0.3.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.lime.pet;
 				PRODUCT_NAME = "Lime Pet";
 				SWIFT_EMIT_LOC_STRINGS = YES;

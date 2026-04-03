@@ -185,6 +185,7 @@ final class PetCoordinator: NSObject {
     private let placementStore = PetPlacementStore.shared
     private let characterLibrary = PetCharacterLibrary.shared
     private lazy var ipcClient = PetIPCClient(configuration: configuration, delegate: self)
+    private let speechCoordinator = PetSpeechCoordinator()
 
     private var window: NSWindow?
     private var movementTimer: Timer?
@@ -296,6 +297,10 @@ final class PetCoordinator: NSObject {
         selectCharacter(id: characterId, announce: true)
     }
 
+    @objc private func promptConversationMenuAction() {
+        promptConversation(source: "menu")
+    }
+
     @objc private func quit() {
         NSApp.terminate(nil)
     }
@@ -376,6 +381,9 @@ final class PetCoordinator: NSObject {
             onCharacterSelected: { [weak self] characterID in
                 self?.selectCharacter(id: characterID, announce: true)
             },
+            onChatRequested: { [weak self] in
+                self?.promptConversation(source: "context_menu")
+            },
             onOpenProviderSettingsRequested: { [weak self] in
                 self?.requestOpenProviderSettings(source: "context_menu")
             },
@@ -419,6 +427,12 @@ final class PetCoordinator: NSObject {
         updateStatusButtonIcon()
 
         let menu = NSMenu()
+
+        let chatItem = NSMenuItem(title: "和我说话…", action: #selector(promptConversationMenuAction), keyEquivalent: "t")
+        chatItem.target = self
+        menu.addItem(chatItem)
+
+        menu.addItem(NSMenuItem.separator())
 
         let reconnectItem = NSMenuItem(title: "重连 Lime", action: #selector(reconnectIPC), keyEquivalent: "r")
         reconnectItem.target = self
@@ -990,6 +1004,35 @@ final class PetCoordinator: NSObject {
         ipcClient.requestPetNextStep(source: "triple_tap")
     }
 
+    private func promptConversation(source: String) {
+        sceneModel.setDragging(false)
+        sceneModel.markInteraction()
+
+        guard let text = PetConversationPrompt.present(characterDisplayName: currentCharacter.displayName) else {
+            return
+        }
+
+        requestChatReply(text: text, source: source)
+    }
+
+    private func requestChatReply(text: String, source: String) {
+        let normalizedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalizedText.isEmpty else {
+            sceneModel.showBubble("你先跟我说一句话吧", autoHideMs: 1400)
+            return
+        }
+
+        guard sceneModel.isConnected else {
+            sceneModel.showBubble("Lime 还没连上，我先等它", autoHideMs: 1400)
+            ipcClient.reconnect()
+            return
+        }
+
+        sceneModel.showBubble("我来想想怎么回答你…", autoHideMs: 1500)
+        resetPatrolCycle(startPaused: true)
+        ipcClient.requestChatReply(text: normalizedText, source: source)
+    }
+
     private func requestOpenProviderSettings(source: String) {
         sceneModel.setDragging(false)
         sceneModel.markInteraction()
@@ -1144,6 +1187,9 @@ extension PetCoordinator: PetIPCClientDelegate {
             updateWindowVisibility()
         case .showBubble(let text, let autoHideMs):
             sceneModel.showBubble(text, autoHideMs: autoHideMs)
+            if sceneModel.state != .hidden, (autoHideMs ?? 0) >= 2200 {
+                speechCoordinator.speak(text)
+            }
         case .openChatAnchor:
             sceneModel.showBubble("点我打开 Lime 对话", autoHideMs: 1600)
         case .providerOverview(let overview):

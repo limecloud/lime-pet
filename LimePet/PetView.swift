@@ -7,6 +7,7 @@ struct PetView: View {
     let onDragChanged: (DragGesture.Value) -> Void
     let onDragEnded: (DragGesture.Value) -> Void
     let onCharacterSelected: (String) -> Void
+    let onChatRequested: () -> Void
     let onOpenProviderSettingsRequested: () -> Void
     let onSyncProviderOverviewRequested: () -> Void
     let onReconnectRequested: () -> Void
@@ -71,6 +72,12 @@ struct PetView: View {
                         onCharacterSelected(character.id)
                     }
                 }
+            }
+
+            Divider()
+
+            Button("和我说话…") {
+                onChatRequested()
             }
 
             Divider()

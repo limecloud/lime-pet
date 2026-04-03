@@ -15,6 +15,8 @@ let petCompanionCapabilities = [
     "provider-overview",
     "provider-sync-request",
     "open-provider-settings",
+    "chat-request",
+    "bubble-speech",
     "multi-tap-actions",
     "live2d-renderer",
     "live2d-expressions"
@@ -47,6 +49,7 @@ enum CompanionEventType: String {
     case openProviderSettings = "pet.open_provider_settings"
     case requestPetCheer = "pet.request_pet_cheer"
     case requestPetNextStep = "pet.request_pet_next_step"
+    case requestChatReply = "pet.request_chat_reply"
 }
 
 enum IncomingCommand {
@@ -138,6 +141,11 @@ struct ReadyPayload: Encodable {
 }
 
 struct InteractionPayload: Encodable {
+    let source: String
+}
+
+struct PetChatRequestPayload: Encodable {
+    let text: String
     let source: String
 }
 

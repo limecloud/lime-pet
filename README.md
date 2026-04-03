@@ -16,6 +16,7 @@
 - 本地 `WebSocket` companion 协议客户端
 - 点击桌宠后向 Lime 发送 `pet.clicked` / `pet.open_chat`
 - 单击 / 双击 / 三击支持不同动作：单击唤起 Lime，双击生成一句青柠鼓励，三击生成一句“下一步建议”
+- 支持从桌宠右键或状态栏菜单直接输入一句话，请求 Lime 宿主侧模型生成回复，并在桌宠本地朗读
 - 断线时会给出提示气泡并自动重连
 - 空闲时会有轻量陪伴气泡，不打断主流程
 - 菜单栏支持重连、回到屏幕中央、左/中/右停靠、显示 / 隐藏桌宠
@@ -74,14 +75,14 @@ open "dist/Lime Pet.app"
 本地生成 release zip：
 
 ```bash
-./scripts/package-release.sh --version "0.3.1" --build-number "1"
+./scripts/package-release.sh --version "0.3.2" --build-number "1"
 ```
 
 产物默认会按当前宿主架构输出，例如 Apple Silicon 机器上会得到：
 
 ```text
-dist/release/LimePet-v0.3.1-macos-arm64-unsigned.zip
-dist/release/LimePet-v0.3.1-macos-arm64-unsigned.zip.sha256
+dist/release/LimePet-v0.3.2-macos-arm64-unsigned.zip
+dist/release/LimePet-v0.3.2-macos-arm64-unsigned.zip.sha256
 ```
 
 GitHub Actions 发布策略：

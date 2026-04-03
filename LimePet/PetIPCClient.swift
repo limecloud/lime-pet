@@ -67,6 +67,13 @@ final class PetIPCClient: NSObject {
         send(event: .requestPetNextStep, payload: InteractionPayload(source: source))
     }
 
+    func requestChatReply(text: String, source: String) {
+        send(
+            event: .requestChatReply,
+            payload: PetChatRequestPayload(text: text, source: source)
+        )
+    }
+
     private func sendReadyEvent() {
         send(
             event: .ready,

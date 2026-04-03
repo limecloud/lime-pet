@@ -169,6 +169,8 @@
       "provider-overview",
       "provider-sync-request",
       "open-provider-settings",
+      "chat-request",
+      "bubble-speech",
       "multi-tap-actions",
       "live2d-renderer",
       "live2d-expressions"
@@ -267,6 +269,21 @@
 }
 ```
 
+### `pet.request_chat_reply`
+
+桌宠把用户主动输入的一句话交给 Lime，由宿主侧当前可聊天模型生成一条短回复，再由 Lime 回写 `pet.show_bubble`。
+
+```json
+{
+  "protocol_version": 1,
+  "event": "pet.request_chat_reply",
+  "payload": {
+    "text": "今天有点累，陪我聊两句",
+    "source": "context_menu"
+  }
+}
+```
+
 ### `pet.ready` capability 说明
 
 - `platform`：当前实现值可以是 `macos` 或 `windows`
@@ -286,6 +303,8 @@
 - `provider-overview`：支持接收 Lime 下发的脱敏 provider 摘要
 - `provider-sync-request`：支持桌宠主动请求 Lime 立即重发一次最新的脱敏 provider 摘要
 - `open-provider-settings`：支持从桌宠回跳 Lime 的 AI 服务商设置页
+- `chat-request`：支持把用户输入的短文本交给 Lime，由宿主侧模型生成桌宠回复
+- `bubble-speech`：支持把 Lime 回写的回复气泡在桌宠本地朗读出来
 - `live2d-renderer`：支持基于本地资源加载和渲染 Live2D 模型
 - `live2d-expressions`：支持消费 Lime 下发的表情标签和动作指令
 
