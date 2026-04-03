@@ -119,6 +119,33 @@
 
 本事件会被 companion 壳转换成本地诊断视图，例如连接状态、最近同步时间、建议动作和前几项服务商摘要；这些诊断都来源于脱敏 payload，不会反查原始凭证。
 
+### `pet.live2d_action`
+
+当桌宠当前角色使用 `Live2D` 渲染后端时，Lime 可以通过这个事件推送表情和动作。  
+桌宠只负责消费这些动作，不负责生成情绪标签。
+
+```json
+{
+  "protocol_version": 1,
+  "event": "pet.live2d_action",
+  "payload": {
+    "expressions": ["joy", 3],
+    "emotion_tags": ["surprise"],
+    "motion_group": "",
+    "motion_index": 4
+  }
+}
+```
+
+字段约束：
+
+- `expressions`：可选，允许混合传字符串标签或数值索引
+- `emotion_tags`：可选，字符串标签数组，桌宠会按当前角色的 `emotionMap` 解析
+- `motion_group`：可选，动作组名
+- `motion_index`：可选，动作索引
+
+如果当前角色不是 `Live2D`，或映射不到有效表情 / 动作，桌宠会安全忽略该事件。
+
 ## Pet -> Lime
 
 ### `pet.ready`
@@ -142,7 +169,9 @@
       "provider-overview",
       "provider-sync-request",
       "open-provider-settings",
-      "multi-tap-actions"
+      "multi-tap-actions",
+      "live2d-renderer",
+      "live2d-expressions"
     ]
   }
 }
@@ -257,6 +286,8 @@
 - `provider-overview`：支持接收 Lime 下发的脱敏 provider 摘要
 - `provider-sync-request`：支持桌宠主动请求 Lime 立即重发一次最新的脱敏 provider 摘要
 - `open-provider-settings`：支持从桌宠回跳 Lime 的 AI 服务商设置页
+- `live2d-renderer`：支持基于本地资源加载和渲染 Live2D 模型
+- `live2d-expressions`：支持消费 Lime 下发的表情标签和动作指令
 
 ## 兼容策略
 

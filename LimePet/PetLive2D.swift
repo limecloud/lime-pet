@@ -1,6 +1,7 @@
 import Foundation
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 import WebKit
 
 enum PetRendererKind: String, Codable, Hashable {
@@ -147,6 +148,7 @@ struct PetLive2DHostView: NSViewRepresentable {
 
     final class Coordinator: NSObject, WKNavigationDelegate {
         private let bundle: Bundle
+        private lazy var schemeHandler = ResourceSchemeHandler(bundle: bundle)
         private var isReady = false
         private var pendingScripts: [String] = []
         private var lastModelSignature: String?
@@ -161,16 +163,18 @@ struct PetLive2DHostView: NSViewRepresentable {
 
         func makeWebView() -> WKWebView {
             let configuration = WKWebViewConfiguration()
+            configuration.userContentController = makeUserContentController()
+            configuration.setURLSchemeHandler(schemeHandler, forURLScheme: Self.resourceScheme)
             let webView = WKWebView(frame: .zero, configuration: configuration)
             webView.navigationDelegate = self
             webView.setValue(false, forKey: "drawsBackground")
             webView.setValue(NSColor.clear, forKey: "underPageBackgroundColor")
 
-            if let indexURL = bundle.url(forResource: "index", withExtension: "html", subdirectory: "live2d-runtime") {
-                let resourceRoot = indexURL
-                    .deletingLastPathComponent()
-                    .deletingLastPathComponent()
-                webView.loadFileURL(indexURL, allowingReadAccessTo: resourceRoot)
+            if let indexURL = runtimeIndexURL() {
+                NSLog("[PetLive2DHost] load index \(indexURL.absoluteString)")
+                webView.load(URLRequest(url: indexURL))
+            } else {
+                NSLog("[PetLive2DHost] missing runtime index")
             }
 
             return webView
@@ -183,13 +187,14 @@ struct PetLive2DHostView: NSViewRepresentable {
             hidden: Bool,
             queuedAction: PetLive2DQueuedAction?
         ) {
-            let modelSignature = "\(configuration.modelPath)|\(configuration.scale)|\(configuration.offsetX)|\(configuration.offsetY)"
+            let resolvedModelPath = resolvedModelPath(for: configuration.modelPath)
+            let modelSignature = "\(resolvedModelPath)|\(configuration.scale)|\(configuration.offsetX)|\(configuration.offsetY)"
             if modelSignature != lastModelSignature {
                 lastModelSignature = modelSignature
                 send(
                     type: .loadModel,
                     payload: [
-                        "modelPath": configuration.modelPath,
+                        "modelPath": resolvedModelPath,
                         "scale": configuration.scale,
                         "offsetX": configuration.offsetX,
                         "offsetY": configuration.offsetY
@@ -232,11 +237,20 @@ struct PetLive2DHostView: NSViewRepresentable {
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            NSLog("[PetLive2DHost] didFinish navigation")
             isReady = true
             for script in pendingScripts {
                 webView.evaluateJavaScript(script, completionHandler: nil)
             }
             pendingScripts.removeAll()
+        }
+
+        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            NSLog("[PetLive2DWeb][navigation] \(error.localizedDescription)")
+        }
+
+        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            NSLog("[PetLive2DWeb][provisional] \(error.localizedDescription)")
         }
 
         private func send(type: PetLive2DHostMessageType, payload: [String: Any], to webView: WKWebView) {
@@ -252,11 +266,207 @@ struct PetLive2DHostView: NSViewRepresentable {
             }
 
             let script = "window.LimePetLive2D && window.LimePetLive2D.receive(\(json));"
+            NSLog("[PetLive2DHost] send \(type.rawValue) ready=\(isReady)")
             if isReady {
                 webView.evaluateJavaScript(script, completionHandler: nil)
             } else {
                 pendingScripts.append(script)
             }
         }
+
+        private func runtimeIndexURL() -> URL? {
+            guard let resourcePath = runtimeIndexResourcePath() else {
+                return nil
+            }
+
+            return URL(string: "\(Self.resourceScheme)://\(Self.resourceHost)/\(resourcePath)")
+        }
+
+        private func runtimeIndexResourcePath() -> String? {
+            if bundle.url(forResource: "index", withExtension: "html", subdirectory: "live2d-runtime") != nil {
+                return "live2d-runtime/index.html"
+            }
+
+            if bundle.url(forResource: "index", withExtension: "html") != nil {
+                return "index.html"
+            }
+
+            return nil
+        }
+
+        private func makeUserContentController() -> WKUserContentController {
+            let controller = WKUserContentController()
+            controller.add(self, name: "live2dLog")
+            controller.addUserScript(
+                WKUserScript(
+                    source: Self.consoleBridgeScript,
+                    injectionTime: .atDocumentStart,
+                    forMainFrameOnly: true
+                )
+            )
+            return controller
+        }
+
+        private func resolvedModelPath(for logicalPath: String) -> String {
+            if let directURL = URL(string: logicalPath), directURL.scheme != nil {
+                return logicalPath
+            }
+
+            let nsLogicalPath = logicalPath as NSString
+            let fileName = nsLogicalPath.lastPathComponent as NSString
+            let resourceName = fileName.deletingPathExtension
+            let resourceExtension = fileName.pathExtension.isEmpty ? nil : fileName.pathExtension
+            let subdirectory = nsLogicalPath.deletingLastPathComponent
+
+            if !subdirectory.isEmpty,
+               bundle.url(
+                    forResource: resourceName,
+                    withExtension: resourceExtension,
+                    subdirectory: subdirectory
+               ) != nil {
+                return logicalPath
+            }
+
+            if bundle.url(forResource: resourceName, withExtension: resourceExtension) != nil {
+                return "./\(fileName)"
+            }
+
+            return logicalPath
+        }
+
+        private static let consoleBridgeScript = """
+        (() => {
+          const post = (level, values) => {
+            try {
+              window.webkit.messageHandlers.live2dLog.postMessage({
+                level,
+                values: values.map((value) => {
+                  if (typeof value === "string") {
+                    return value;
+                  }
+                  try {
+                    return JSON.stringify(value);
+                  } catch (error) {
+                    return String(value);
+                  }
+                })
+              });
+            } catch (error) {
+            }
+          };
+
+          for (const level of ["log", "warn", "error"]) {
+            const original = console[level];
+            console[level] = (...args) => {
+              post(level, args);
+              original.apply(console, args);
+            };
+          }
+
+          window.addEventListener("error", (event) => {
+            post("error", [event.message || "window error"]);
+          });
+
+          window.addEventListener("unhandledrejection", (event) => {
+            post("error", ["unhandledrejection", event.reason]);
+          });
+        })();
+        """
+
+        private static let resourceScheme = "limepet"
+        private static let resourceHost = "bundle"
+
+        final class ResourceSchemeHandler: NSObject, WKURLSchemeHandler {
+            private let rootURL: URL
+
+            init(bundle: Bundle) {
+                self.rootURL = bundle.bundleURL.standardizedFileURL
+                super.init()
+            }
+
+            func webView(_ webView: WKWebView, start urlSchemeTask: any WKURLSchemeTask) {
+                guard
+                    let requestURL = urlSchemeTask.request.url,
+                    requestURL.scheme == Coordinator.resourceScheme,
+                    requestURL.host == Coordinator.resourceHost
+                else {
+                    fail(urlSchemeTask, code: NSURLErrorBadURL, description: "Invalid Live2D resource URL")
+                    return
+                }
+
+                let relativePath = requestURL.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+                let targetURL = rootURL.appendingPathComponent(relativePath).standardizedFileURL
+                guard targetURL.path.hasPrefix(rootURL.path) else {
+                    fail(urlSchemeTask, code: NSURLErrorNoPermissionsToReadFile, description: "Live2D resource outside bundle")
+                    return
+                }
+
+                guard let data = try? Data(contentsOf: targetURL) else {
+                    fail(urlSchemeTask, code: NSURLErrorFileDoesNotExist, description: "Missing Live2D resource: \(relativePath)")
+                    return
+                }
+
+                let response = URLResponse(
+                    url: requestURL,
+                    mimeType: Self.mimeType(for: targetURL),
+                    expectedContentLength: data.count,
+                    textEncodingName: Self.textEncodingName(for: targetURL)
+                )
+                urlSchemeTask.didReceive(response)
+                urlSchemeTask.didReceive(data)
+                urlSchemeTask.didFinish()
+            }
+
+            func webView(_ webView: WKWebView, stop urlSchemeTask: any WKURLSchemeTask) {
+            }
+
+            private func fail(_ task: any WKURLSchemeTask, code: Int, description: String) {
+                task.didFailWithError(
+                    NSError(
+                        domain: NSURLErrorDomain,
+                        code: code,
+                        userInfo: [NSLocalizedDescriptionKey: description]
+                    )
+                )
+            }
+
+            private static func mimeType(for url: URL) -> String {
+                if let type = UTType(filenameExtension: url.pathExtension),
+                   let mimeType = type.preferredMIMEType {
+                    return mimeType
+                }
+
+                switch url.pathExtension.lowercased() {
+                case "moc3":
+                    return "application/octet-stream"
+                default:
+                    return "application/octet-stream"
+                }
+            }
+
+            private static func textEncodingName(for url: URL) -> String? {
+                switch url.pathExtension.lowercased() {
+                case "html", "js", "json", "css", "txt":
+                    return "utf-8"
+                default:
+                    return nil
+                }
+            }
+        }
+    }
+}
+
+extension PetLive2DHostView.Coordinator: WKScriptMessageHandler {
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard
+            message.name == "live2dLog",
+            let body = message.body as? [String: Any],
+            let level = body["level"] as? String
+        else {
+            return
+        }
+
+        let values = (body["values"] as? [String]) ?? []
+        NSLog("[PetLive2DWeb][\(level)] \(values.joined(separator: " | "))")
     }
 }

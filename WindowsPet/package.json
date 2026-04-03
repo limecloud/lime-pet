@@ -1,7 +1,7 @@
 {
   "name": "lime-pet-windows",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "scripts": {
     "sync:assets": "node scripts/sync-shared-assets.mjs",

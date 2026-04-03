@@ -2,9 +2,11 @@ import SwiftUI
 
 struct PetView: View {
     @ObservedObject var sceneModel: PetSceneModel
+    let availableCharacters: [PetCharacterTheme]
     let debugWindowSurface: Bool
     let onDragChanged: (DragGesture.Value) -> Void
     let onDragEnded: (DragGesture.Value) -> Void
+    let onCharacterSelected: (String) -> Void
     let onOpenProviderSettingsRequested: () -> Void
     let onSyncProviderOverviewRequested: () -> Void
     let onReconnectRequested: () -> Void
@@ -13,6 +15,18 @@ struct PetView: View {
 
     private var palette: PetRenderPalette {
         sceneModel.character.palette(for: sceneModel.state)
+    }
+
+    private var renderSurfaceTopSpacing: CGFloat {
+        sceneModel.character.rendererKind == .live2d ? 10 : 62
+    }
+
+    private var sceneFrameSize: CGSize {
+        if sceneModel.character.rendererKind == .live2d {
+            return CGSize(width: 320, height: 320)
+        }
+
+        return CGSize(width: 260, height: 228)
     }
 
     var body: some View {
@@ -30,7 +44,7 @@ struct PetView: View {
             ambientGlow
 
             VStack(spacing: 0) {
-                Spacer(minLength: 62)
+                Spacer(minLength: renderSurfaceTopSpacing)
                 PetRenderSurface(sceneModel: sceneModel, palette: palette)
             }
 
@@ -39,7 +53,7 @@ struct PetView: View {
                     .offset(y: 160)
             }
         }
-        .frame(width: 260, height: 228)
+        .frame(width: sceneFrameSize.width, height: sceneFrameSize.height)
         .contentShape(Rectangle())
         .gesture(
             DragGesture(minimumDistance: 0)
@@ -51,6 +65,16 @@ struct PetView: View {
                 }
         )
         .contextMenu {
+            Menu("切换桌宠") {
+                ForEach(availableCharacters, id: \.id) { character in
+                    Button(character.displayName) {
+                        onCharacterSelected(character.id)
+                    }
+                }
+            }
+
+            Divider()
+
             Menu("Lime Companion 诊断") {
                 diagnosticReadonlyItem(sceneModel.companionDiagnostic.connectionLine)
                 diagnosticReadonlyItem(sceneModel.companionDiagnostic.endpointLine)

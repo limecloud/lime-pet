@@ -8,3 +8,5 @@ xcuserdata/
 node_modules/
 target/
 WindowsPet/src-tauri/gen/
+.playwright-mcp/
+live2d-runtime-*.png

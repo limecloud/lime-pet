@@ -63,6 +63,7 @@
 
   function resolveModelPath(modelPath) {
     if (
+      modelPath.startsWith("./") ||
       modelPath.startsWith("../") ||
       modelPath.startsWith("http://") ||
       modelPath.startsWith("https://") ||
@@ -88,12 +89,8 @@
   }
 
   function applyFacing() {
-    if (!state.model) {
-      return;
-    }
-
-    const magnitude = Math.abs(state.model.scale.x || 1);
-    state.model.scale.x = state.facingRight ? magnitude : -magnitude;
+    canvas.style.transformOrigin = "center center";
+    canvas.style.transform = state.facingRight ? "none" : "scaleX(-1)";
   }
 
   function applyHidden() {
@@ -107,14 +104,21 @@
 
     const stageWidth = Math.max(stage.clientWidth, 1);
     const stageHeight = Math.max(stage.clientHeight, 1);
-    const naturalHeight = Math.max(state.model.height, 1);
-    const baseScale = (stageHeight * 0.76 / naturalHeight) * state.config.scale;
-    const resolvedScale = Number.isFinite(baseScale) && baseScale > 0 ? baseScale : 1;
+    const bounds = state.model.getLocalBounds();
+    const naturalWidth = Math.max(bounds.width, 1);
+    const naturalHeight = Math.max(bounds.height, 1);
+    const fitScale = Math.min(
+      (stageWidth * 0.78) / naturalWidth,
+      (stageHeight * 0.84) / naturalHeight
+    );
+    const baseScale = fitScale * state.config.scale;
+    const resolvedScale = Number.isFinite(baseScale) && baseScale > 0 ? baseScale : fitScale;
 
     state.model.scale.set(resolvedScale, resolvedScale);
+    state.model.pivot.set(bounds.x + naturalWidth * 0.5, bounds.y + naturalHeight);
     applyFacing();
     state.model.x = stageWidth * 0.5 + state.config.offsetX;
-    state.model.y = stageHeight * 0.78 + state.config.offsetY;
+    state.model.y = stageHeight * 0.96 + state.config.offsetY;
   }
 
   async function playAction(payload) {
@@ -161,7 +165,6 @@
       unloadModel();
       state.config = config;
       state.model = model;
-      state.model.anchor.set(0.5, 0.5);
       state.model.interactive = false;
       state.app.stage.addChild(state.model);
       layoutModel();

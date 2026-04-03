@@ -21,7 +21,13 @@ let package = Package(
                 "Info.plist"
             ],
             resources: [
-                .process("Resources")
+                .process("Resources/character-library.json"),
+                .process("Resources/dewy-lime-cutout.png"),
+                .process("Resources/dewy-lime-shadow.png"),
+                .process("Resources/dewy-lime.png"),
+                .process("Resources/dewy-lime-transparent.png"),
+                .copy("Resources/live2d-runtime"),
+                .copy("Resources/live2d-models")
             ]
         )
     ]

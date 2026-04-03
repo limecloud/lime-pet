@@ -198,7 +198,6 @@ final class PetCoordinator: NSObject {
     private var tapDispatchTask: Task<Void, Never>?
     private var pendingTapCount = 0
 
-    private let petSize = NSSize(width: 260, height: 228)
     private var currentX: CGFloat = 0
     private var currentY: CGFloat = 0
     private var anchorX: CGFloat = 0
@@ -219,6 +218,14 @@ final class PetCoordinator: NSObject {
 
     private var isPointerInteractionActive: Bool {
         dragStartMouseLocation != nil || pendingTapCount > 0 || tapDispatchTask != nil
+    }
+
+    private var currentPetSize: NSSize {
+        if currentCharacter.rendererKind == .live2d {
+            return NSSize(width: 320, height: 320)
+        }
+
+        return NSSize(width: 260, height: 228)
     }
 
     init(configuration: LaunchConfiguration) {
@@ -282,14 +289,11 @@ final class PetCoordinator: NSObject {
     }
 
     @objc private func selectCharacter(_ sender: NSMenuItem) {
-        guard
-            let characterId = sender.representedObject as? String,
-            let character = characterLibrary.selectCharacter(id: characterId)
-        else {
+        guard let characterId = sender.representedObject as? String else {
             return
         }
 
-        applyCharacter(character, announce: true)
+        selectCharacter(id: characterId, announce: true)
     }
 
     @objc private func quit() {
@@ -304,6 +308,7 @@ final class PetCoordinator: NSObject {
         currentCharacter = character
         sceneModel.updateCharacter(character)
         sceneModel.live2dQueuedAction = nil
+        updateWindowSizeForCurrentCharacter()
         startAmbientDialogueLoop()
         refreshCharacterMenuState()
         updateStatusButtonIcon()
@@ -313,6 +318,14 @@ final class PetCoordinator: NSObject {
             sceneModel.markInteraction()
             sceneModel.showBubble(character.switchBubble, autoHideMs: 1300)
         }
+    }
+
+    private func selectCharacter(id: String, announce: Bool) {
+        guard let character = characterLibrary.selectCharacter(id: id) else {
+            return
+        }
+
+        applyCharacter(character, announce: announce)
     }
 
     private func refreshCharacterMenuState() {
@@ -352,12 +365,16 @@ final class PetCoordinator: NSObject {
 
         let rootView = PetView(
             sceneModel: sceneModel,
+            availableCharacters: characterLibrary.characters,
             debugWindowSurface: configuration.debugWindowSurface,
             onDragChanged: { [weak self] value in
                 self?.handleDragChanged(value)
             },
             onDragEnded: { [weak self] value in
                 self?.handleDragEnded(value)
+            },
+            onCharacterSelected: { [weak self] characterID in
+                self?.selectCharacter(id: characterID, announce: true)
             },
             onOpenProviderSettingsRequested: { [weak self] in
                 self?.requestOpenProviderSettings(source: "context_menu")
@@ -376,6 +393,7 @@ final class PetCoordinator: NSObject {
             }
         )
 
+        let petSize = currentPetSize
         let hostingController = NSHostingController(rootView: rootView)
         hostingController.view.frame = NSRect(origin: .zero, size: petSize)
         hostingController.view.autoresizingMask = [.width, .height]
@@ -503,6 +521,7 @@ final class PetCoordinator: NSObject {
     }
 
     private func initialFrame(on screen: NSScreen) -> NSRect {
+        let petSize = currentPetSize
         restorePlacement(on: screen)
         restY = floorY(for: screen)
         currentY = restY
@@ -510,6 +529,7 @@ final class PetCoordinator: NSObject {
     }
 
     private func restorePlacement(on screen: NSScreen) {
+        let petSize = currentPetSize
         if let restored = placementStore.restoreOriginX(on: screen, petSize: petSize) {
             currentPerch = restored.perch
             anchorX = restored.originX
@@ -532,17 +552,20 @@ final class PetCoordinator: NSObject {
     }
 
     private func clampAnchor(on screen: NSScreen) {
+        let petSize = currentPetSize
         let visible = screen.visibleFrame
         anchorX = min(max(anchorX, visible.minX + 4), visible.maxX - petSize.width - 4)
     }
 
     private func clampPosition(on screen: NSScreen) {
+        let petSize = currentPetSize
         let visible = screen.visibleFrame
         currentX = min(max(currentX, visible.minX + 4), visible.maxX - petSize.width - 4)
         currentY = min(max(currentY, visible.minY + 6), visible.maxY - petSize.height - 4)
     }
 
     private func roamingBounds(on screen: NSScreen) -> ClosedRange<CGFloat> {
+        let petSize = currentPetSize
         clampAnchor(on: screen)
         let visible = screen.visibleFrame
         let minX = visible.minX + 4
@@ -585,11 +608,13 @@ final class PetCoordinator: NSObject {
     }
 
     private func persistPlacement(on screen: NSScreen) {
+        let petSize = currentPetSize
         placementStore.save(originX: anchorX, perch: currentPerch, on: screen, petSize: petSize)
     }
 
     private func moveToPresetPerch(_ perch: PetPerch, message: String) {
         guard let screen = window?.screen ?? NSScreen.main else { return }
+        let petSize = currentPetSize
         currentPerch = perch
         anchorX = PetPerch.presetOriginX(on: screen, petSize: petSize, perch: perch)
         currentX = anchorX
@@ -602,6 +627,21 @@ final class PetCoordinator: NSObject {
         resetPatrolCycle(startPaused: true)
         persistPlacement(on: screen)
         window?.setFrameOrigin(NSPoint(x: currentX, y: currentY))
+    }
+
+    private func updateWindowSizeForCurrentCharacter() {
+        guard let window, let screen = window.screen ?? NSScreen.main else {
+            return
+        }
+
+        let petSize = currentPetSize
+        window.contentViewController?.view.frame = NSRect(origin: .zero, size: petSize)
+        window.setContentSize(petSize)
+        restY = floorY(for: screen)
+        clampAnchor(on: screen)
+        clampPosition(on: screen)
+        window.setFrameOrigin(NSPoint(x: currentX, y: currentY))
+        persistPlacement(on: screen)
     }
 
     @objc private func openProviderSettings() {
@@ -757,13 +797,13 @@ final class PetCoordinator: NSObject {
                     if currentX <= bounds.lowerBound {
                         currentX = bounds.lowerBound
                         direction = 1
-                        currentY = min(currentY + 14, visible.maxY - petSize.height - 8)
+                        currentY = min(currentY + 14, visible.maxY - currentPetSize.height - 8)
                         sceneModel.triggerEdgeBounce()
                         resetPatrolCycle(startPaused: true)
                     } else if currentX >= bounds.upperBound {
                         currentX = bounds.upperBound
                         direction = -1
-                        currentY = min(currentY + 14, visible.maxY - petSize.height - 8)
+                        currentY = min(currentY + 14, visible.maxY - currentPetSize.height - 8)
                         sceneModel.triggerEdgeBounce()
                         resetPatrolCycle(startPaused: true)
                     } else if strollFramesRemaining == 0 {
@@ -860,7 +900,7 @@ final class PetCoordinator: NSObject {
         guard let screen = screen(containing: mouseLocation) ?? window?.screen ?? NSScreen.main else { return }
         clampPosition(on: screen)
         restY = floorY(for: screen)
-        currentPerch = PetPerch.infer(originX: currentX, on: screen, petSize: petSize)
+        currentPerch = PetPerch.infer(originX: currentX, on: screen, petSize: currentPetSize)
         anchorX = currentX
         currentY = max(currentY, restY + 16)
         direction = currentPerch == .right ? -1 : 1

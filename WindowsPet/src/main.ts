@@ -1,6 +1,17 @@
 import { invoke } from "@tauri-apps/api/core";
 import { currentMonitor, getCurrentWindow, PhysicalPosition } from "@tauri-apps/api/window";
 import {
+  characterById,
+  characterCatalog,
+  characterRenderer,
+  defaultCharacter,
+  live2dEnvelopeAction,
+  live2dStateAction,
+  live2dTapAction,
+  type PetCharacterTheme,
+  type PetState
+} from "./characterLibrary";
+import {
   defaultCompanionEndpoint,
   makeCompanionDiagnosticSnapshot,
   petCompanionCapabilities,
@@ -10,9 +21,8 @@ import {
   type ProviderOverviewItem,
   type ProviderOverviewPayload
 } from "./companionDiagnostics";
+import { Live2DFrameDriver } from "./live2dBridge";
 import "./styles.css";
-
-type PetState = "hidden" | "idle" | "walking" | "thinking" | "done";
 
 type IncomingEvent =
   | "pet.show"
@@ -20,7 +30,8 @@ type IncomingEvent =
   | "pet.state_changed"
   | "pet.show_bubble"
   | "pet.open_chat_anchor"
-  | "pet.provider_overview";
+  | "pet.provider_overview"
+  | "pet.live2d_action";
 
 interface LaunchConfig {
   endpoint: string | null;
@@ -46,6 +57,7 @@ interface WindowPositionSnapshot {
 }
 
 const windowPositionKey = "lime-pet.windows.position.v1";
+const characterSelectionKey = "lime-pet.windows.character.v1";
 const reconnectDelayMs = 5000;
 const dragThreshold = 6;
 const appWindow = getCurrentWindow();
@@ -61,12 +73,17 @@ function requiredElement<TElement extends Element>(selector: string): TElement {
 const shell = requiredElement<HTMLElement>("#app");
 const petButton = requiredElement<HTMLButtonElement>("#petButton");
 const bubble = requiredElement<HTMLElement>("#bubble");
+const petImage = requiredElement<HTMLImageElement>("#petImage");
+const live2dFrame = requiredElement<HTMLIFrameElement>("#live2dFrame");
 const connectionLabel = requiredElement<HTMLElement>("#connectionLabel");
 const modeLabel = requiredElement<HTMLElement>("#modeLabel");
 const contextMenu = requiredElement<HTMLElement>("#contextMenu");
 const diagnosticSummary = requiredElement<HTMLElement>("#diagnosticSummary");
 const diagnosticChecklist = requiredElement<HTMLElement>("#diagnosticChecklist");
 const providerOverviewList = requiredElement<HTMLElement>("#providerOverviewList");
+const characterList = requiredElement<HTMLElement>("#characterList");
+const spriteImageUrl = new URL("./assets/shared/dewy-lime-shadow.png", import.meta.url).toString();
+const live2dDriver = new Live2DFrameDriver(live2dFrame);
 
 const ambientLines = {
   connected: {
@@ -88,6 +105,7 @@ const state = {
   socket: null as WebSocket | null,
   connected: false,
   petState: "walking" as PetState,
+  currentCharacterId: defaultCharacter().id,
   bubbleText: "",
   dragging: false,
   reconnectTimer: null as number | null,
@@ -102,6 +120,7 @@ const state = {
   lastConnectionReason: null as string | null,
   endpointLabel: defaultCompanionEndpoint,
   hasConnectedOnce: false,
+  activeLive2DModelSignature: null as string | null,
   companionDiagnostic: makeCompanionDiagnosticSnapshot({
     endpointLabel: defaultCompanionEndpoint,
     endpointConfigured: true,
@@ -113,12 +132,21 @@ const state = {
   }) as CompanionDiagnosticSnapshot
 };
 
+function currentCharacter(): PetCharacterTheme {
+  return characterById(state.currentCharacterId) ?? defaultCharacter();
+}
+
+function currentRenderer(): "sprite" | "live2d" {
+  return characterRenderer(currentCharacter());
+}
+
 function updateShellClasses(): void {
   shell.className = [
     "pet-shell",
     `state-${state.petState}`,
     state.connected ? "connected" : "disconnected",
-    state.dragging ? "dragging" : ""
+    state.dragging ? "dragging" : "",
+    `renderer-${currentRenderer()}`
   ]
     .filter(Boolean)
     .join(" ");
@@ -186,11 +214,65 @@ function renderCompanionDiagnostics(): void {
   renderReadonlyLines(providerOverviewList, state.companionDiagnostic.providerLines);
 }
 
+function renderCharacterList(): void {
+  const activeCharacterId = currentCharacter().id;
+  characterList.replaceChildren(
+    ...characterCatalog.characters.map((character) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = [
+        "context-item",
+        character.id === activeCharacterId ? "active" : ""
+      ].filter(Boolean).join(" ");
+      button.dataset.action = "switch-character";
+      button.dataset.characterId = character.id;
+      button.textContent = character.displayName;
+      return button;
+    }),
+  );
+}
+
+function syncLive2DVisibility(): void {
+  const character = currentCharacter();
+  const renderer = characterRenderer(character);
+  const isLive2D = renderer === "live2d" && Boolean(character.live2d);
+  petImage.classList.toggle("hidden", isLive2D);
+  live2dFrame.classList.toggle("hidden", !isLive2D);
+  petImage.src = spriteImageUrl;
+  petImage.alt = character.displayName;
+  petButton.setAttribute("aria-label", character.displayName);
+
+  if (isLive2D && character.live2d) {
+    live2dDriver.setSource("/live2d-runtime/index.html");
+    const signature = [
+      character.id,
+      character.live2d.modelPath,
+      character.live2d.scale,
+      character.live2d.offsetX,
+      character.live2d.offsetY
+    ].join("|");
+    if (state.activeLive2DModelSignature !== signature) {
+      state.activeLive2DModelSignature = signature;
+      live2dDriver.loadModel(character.live2d);
+    }
+    live2dDriver.setFacing(true);
+    live2dDriver.setHidden(state.petState === "hidden");
+    return;
+  }
+
+  if (state.activeLive2DModelSignature !== null) {
+    state.activeLive2DModelSignature = null;
+    live2dDriver.unloadModel();
+  }
+}
+
 function render(): void {
   updateShellClasses();
   renderLabels();
   renderBubble();
   renderCompanionDiagnostics();
+  renderCharacterList();
+  syncLive2DVisibility();
 }
 
 function clearBubbleTimer(): void {
@@ -220,9 +302,34 @@ function hideBubble(): void {
   renderBubble();
 }
 
+function playCurrentLive2DStateAction(): void {
+  live2dDriver.playAction(live2dStateAction(currentCharacter(), state.petState));
+}
+
+function playLive2DTapAction(tapKind: "single" | "double" | "triple"): void {
+  live2dDriver.playAction(live2dTapAction(currentCharacter(), tapKind));
+}
+
+function applyCharacterSelection(characterId: string, announce: boolean): void {
+  const character = characterById(characterId);
+  if (!character) {
+    return;
+  }
+
+  state.currentCharacterId = character.id;
+  localStorage.setItem(characterSelectionKey, character.id);
+  render();
+  playCurrentLive2DStateAction();
+
+  if (announce) {
+    showBubble(character.switchBubble, 1400);
+  }
+}
+
 function setPetState(nextState: PetState): void {
   state.petState = nextState;
   render();
+  playCurrentLive2DStateAction();
 }
 
 function closeContextMenu(): void {
@@ -491,6 +598,9 @@ async function handleIncomingMessage(rawText: string): Promise<void> {
       }
       break;
     }
+    case "pet.live2d_action":
+      live2dDriver.playAction(live2dEnvelopeAction(currentCharacter(), envelope.payload));
+      break;
     default:
       break;
   }
@@ -547,6 +657,8 @@ async function connectSocket(): Promise<void> {
 }
 
 async function handlePetTap(): Promise<void> {
+  playLive2DTapAction("single");
+
   if (!state.connected) {
     showBubble("Lime 还没连上，我先等它", 1400);
     clearReconnectTimer();
@@ -559,6 +671,8 @@ async function handlePetTap(): Promise<void> {
 }
 
 function requestPetCheer(source: string): void {
+  playLive2DTapAction("double");
+
   if (!state.connected) {
     showBubble("Lime 还没连上，我先等它", 1400);
     clearReconnectTimer();
@@ -571,6 +685,8 @@ function requestPetCheer(source: string): void {
 }
 
 function requestPetNextStep(source: string): void {
+  playLive2DTapAction("triple");
+
   if (!state.connected) {
     showBubble("Lime 还没连上，我先等它", 1400);
     clearReconnectTimer();
@@ -658,14 +774,22 @@ function bindContextMenuActions(): void {
   contextMenu.addEventListener("click", (event) => {
     const target = event.target as HTMLElement | null;
     const action = target?.dataset.action;
+    const characterId = target?.dataset.characterId;
 
     if (!action) {
       return;
     }
 
-    closeContextMenu();
+    if (action !== "switch-character") {
+      closeContextMenu();
+    }
 
     switch (action) {
+      case "switch-character":
+        if (characterId) {
+          applyCharacterSelection(characterId, true);
+        }
+        break;
       case "reconnect":
         reconnectFromMenu();
         break;
@@ -772,6 +896,8 @@ async function initializeWindowBehavior(): Promise<void> {
 async function bootstrap(): Promise<void> {
   state.config = await invoke<LaunchConfig>("load_launch_config");
   state.endpointLabel = state.config.endpoint ?? "未配置";
+  const storedCharacterId = localStorage.getItem(characterSelectionKey);
+  state.currentCharacterId = characterById(storedCharacterId)?.id ?? defaultCharacter().id;
   render();
   bindContextMenuActions();
   bindWindowGestures();

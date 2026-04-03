@@ -62,9 +62,45 @@
       <div id="status" aria-live="polite"></div>
     </div>
 
-    <script src="./vendor/pixi.min.js"></script>
-    <script src="./vendor/live2dcubismcore.min.js"></script>
-    <script src="./vendor/pixi-live2d-cubism4.min.js"></script>
-    <script src="./runtime.js"></script>
+    <script>
+      async function loadScript(candidates) {
+        for (const candidate of candidates) {
+          try {
+            await new Promise((resolve, reject) => {
+              const script = document.createElement("script");
+              script.src = candidate;
+              script.async = false;
+              script.onload = resolve;
+              script.onerror = () => {
+                script.remove();
+                reject(new Error(candidate));
+              };
+              document.body.appendChild(script);
+            });
+            return;
+          } catch (error) {
+            console.warn("[LimePetLive2D] Failed to load script", candidate, error);
+          }
+        }
+
+        throw new Error(`Missing runtime asset: ${candidates.join(", ")}`);
+      }
+
+      (async () => {
+        try {
+          await loadScript(["./vendor/pixi.min.js", "./pixi.min.js"]);
+          await loadScript(["./vendor/live2dcubismcore.min.js", "./live2dcubismcore.min.js"]);
+          await loadScript(["./vendor/pixi-live2d-cubism4.min.js", "./pixi-live2d-cubism4.min.js"]);
+          await loadScript(["./runtime.js"]);
+        } catch (error) {
+          const status = document.getElementById("status");
+          if (status) {
+            status.textContent = "Live2D 运行时加载失败";
+            status.classList.add("visible");
+          }
+          console.error("[LimePetLive2D] Failed to bootstrap runtime", error);
+        }
+      })();
+    </script>
   </body>
 </html>

@@ -988,6 +988,609 @@
         "doneSecondary": "checkmark.circle.fill",
         "crest": "sparkle"
       }
+    },
+    {
+      "id": "mao-live2d",
+      "displayName": "茉莉 Live2D",
+      "switchBubble": "切换到 Live2D 茉莉形态",
+      "renderer": "live2d",
+      "live2d": {
+        "modelPath": "live2d-models/mao_pro/runtime/mao_pro.model3.json",
+        "scale": 1.12,
+        "offsetX": 0,
+        "offsetY": -6,
+        "emotionMap": {
+          "neutral": 0,
+          "anger": 2,
+          "disgust": 2,
+          "fear": 1,
+          "joy": 3,
+          "smirk": 3,
+          "sadness": 1,
+          "surprise": 3
+        },
+        "stateActions": {
+          "idle": {
+            "expression": "neutral",
+            "motion": {
+              "group": "Idle",
+              "index": 0
+            }
+          },
+          "walking": {
+            "expression": "joy",
+            "motion": {
+              "group": "",
+              "index": 0
+            }
+          },
+          "thinking": {
+            "expression": "surprise",
+            "motion": {
+              "group": "",
+              "index": 1
+            }
+          },
+          "done": {
+            "expression": "joy",
+            "motion": {
+              "group": "",
+              "index": 3
+            }
+          }
+        },
+        "tapActions": {
+          "single": {
+            "group": "",
+            "index": 2
+          },
+          "double": {
+            "group": "",
+            "index": 4
+          },
+          "triple": {
+            "group": "",
+            "index": 5
+          }
+        }
+      },
+      "palettes": {
+        "idle": {
+          "shell": {
+            "red": 0.95,
+            "green": 0.88,
+            "blue": 0.9,
+            "alpha": 1
+          },
+          "belly": {
+            "red": 0.99,
+            "green": 0.96,
+            "blue": 0.97,
+            "alpha": 1
+          },
+          "accent": {
+            "red": 0.42,
+            "green": 0.22,
+            "blue": 0.31,
+            "alpha": 1
+          },
+          "glow": {
+            "red": 0.97,
+            "green": 0.78,
+            "blue": 0.86,
+            "alpha": 1
+          },
+          "blush": {
+            "red": 0.92,
+            "green": 0.68,
+            "blue": 0.77,
+            "alpha": 1
+          }
+        },
+        "walking": {
+          "shell": {
+            "red": 0.94,
+            "green": 0.84,
+            "blue": 0.89,
+            "alpha": 1
+          },
+          "belly": {
+            "red": 0.98,
+            "green": 0.94,
+            "blue": 0.96,
+            "alpha": 1
+          },
+          "accent": {
+            "red": 0.48,
+            "green": 0.24,
+            "blue": 0.34,
+            "alpha": 1
+          },
+          "glow": {
+            "red": 0.98,
+            "green": 0.74,
+            "blue": 0.84,
+            "alpha": 1
+          },
+          "blush": {
+            "red": 0.95,
+            "green": 0.69,
+            "blue": 0.78,
+            "alpha": 1
+          }
+        },
+        "thinking": {
+          "shell": {
+            "red": 0.89,
+            "green": 0.9,
+            "blue": 0.98,
+            "alpha": 1
+          },
+          "belly": {
+            "red": 0.95,
+            "green": 0.96,
+            "blue": 1.0,
+            "alpha": 1
+          },
+          "accent": {
+            "red": 0.29,
+            "green": 0.37,
+            "blue": 0.59,
+            "alpha": 1
+          },
+          "glow": {
+            "red": 0.71,
+            "green": 0.8,
+            "blue": 0.98,
+            "alpha": 1
+          },
+          "blush": {
+            "red": 0.78,
+            "green": 0.75,
+            "blue": 0.95,
+            "alpha": 1
+          }
+        },
+        "done": {
+          "shell": {
+            "red": 0.99,
+            "green": 0.92,
+            "blue": 0.84,
+            "alpha": 1
+          },
+          "belly": {
+            "red": 1.0,
+            "green": 0.97,
+            "blue": 0.91,
+            "alpha": 1
+          },
+          "accent": {
+            "red": 0.53,
+            "green": 0.37,
+            "blue": 0.13,
+            "alpha": 1
+          },
+          "glow": {
+            "red": 1.0,
+            "green": 0.88,
+            "blue": 0.65,
+            "alpha": 1
+          },
+          "blush": {
+            "red": 0.96,
+            "green": 0.8,
+            "blue": 0.7,
+            "alpha": 1
+          }
+        }
+      },
+      "motion": {
+        "walkSpeedMultiplier": 0.96,
+        "roamRadiusMultiplier": 1.0,
+        "bobAmplitudeMultiplier": 1.0,
+        "stretchMultiplier": 1.0,
+        "tailSwingMultiplier": 0.8,
+        "blinkMinFrames": 110,
+        "blinkMaxFrames": 240,
+        "ambientDelayMinSeconds": 14,
+        "ambientDelayMaxSeconds": 24
+      },
+      "dialogue": {
+        "connectedIdle": [
+          "我已经切到 Live2D 形态啦",
+          "现在会用表情和动作陪着你"
+        ],
+        "disconnectedIdle": [
+          "连接还没回来，我先保持在台前",
+          "等 Lime 连上后，我会继续动起来"
+        ],
+        "connectedWalking": [
+          "我会跟着状态切动作",
+          "现在这边也能用 Live2D 陪你了"
+        ],
+        "disconnectedWalking": [
+          "离线时先轻轻待命",
+          "连上以后我会继续响应动作"
+        ],
+        "thinking": [
+          "我先用表情陪它思考一会",
+          "有新进展时我会马上换个状态"
+        ],
+        "done": [
+          "这一段已经完成，我来庆祝一下",
+          "如果你愿意，也可以再点我继续"
+        ]
+      },
+      "accessories": {
+        "neck": "none",
+        "head": "flower",
+        "trail": "sparkles",
+        "cheeks": "blush"
+      },
+      "geometry": {
+        "headWidth": 120,
+        "headHeight": 115,
+        "headCornerRadius": 40,
+        "bellyWidth": 65,
+        "bellyHeight": 65,
+        "bellyCornerRadius": 30,
+        "bellyOffsetY": 15,
+        "highlightWidth": 15,
+        "highlightHeight": 45,
+        "highlightOffsetX": -25,
+        "highlightOffsetY": -10,
+        "earWidth": 0,
+        "earHeight": 0,
+        "earSpread": 0,
+        "earOffsetY": 0,
+        "earTilt": 0,
+        "earInnerWidth": 0,
+        "earInnerHeight": 0,
+        "tailWidth": 50,
+        "tailHeight": 20,
+        "tailOffsetX": -35,
+        "tailOffsetY": 20,
+        "haloSize": 125,
+        "shadowWidth": 130,
+        "shadowHeight": 20,
+        "pawWidth": 0,
+        "pawHeight": 0,
+        "pawSpacing": 0,
+        "eyeWhiteWidth": 18,
+        "eyeWhiteHeight": 18,
+        "pupilWidth": 8,
+        "pupilHeight": 8,
+        "eyeSpacing": 28,
+        "eyeOffsetY": -10,
+        "blushSize": 14,
+        "blushSpacing": 38,
+        "blushOffsetY": 8,
+        "mouthWidth": 0.1,
+        "mouthHeight": 0.1,
+        "mouthOffsetY": 15,
+        "whiskerLength": 0,
+        "whiskerThickness": 0,
+        "whiskerSideOffset": 0,
+        "whiskerSpacing": 0,
+        "whiskerRowSpacing": 0,
+        "whiskerOffsetY": 0,
+        "badgeSize": 20,
+        "badgeOffsetX": 30,
+        "badgeOffsetY": -30,
+        "scarfWidth": 0,
+        "scarfHeight": 0,
+        "scarfOffsetY": 0,
+        "scarfTailWidth": 0,
+        "scarfTailHeight": 0,
+        "scarfTailOffsetX": 0,
+        "scarfTailOffsetY": 0,
+        "crestSize": 20,
+        "crestOffsetY": -45
+      },
+      "symbols": {
+        "menuBar": "person.crop.circle.fill",
+        "connectedStatus": "sparkles",
+        "disconnectedStatus": "wifi.slash",
+        "thinkingPrimary": "brain.head.profile",
+        "donePrimary": "sparkles",
+        "doneSecondary": "checkmark.circle.fill",
+        "crest": "sparkles"
+      }
+    },
+    {
+      "id": "shizuku-live2d",
+      "displayName": "雫 Live2D",
+      "switchBubble": "切换到 Live2D 雫形态",
+      "renderer": "live2d",
+      "live2d": {
+        "modelPath": "live2d-models/shizuku/runtime/shizuku.model3.json",
+        "scale": 1.0,
+        "offsetX": 0,
+        "offsetY": -4,
+        "emotionMap": {},
+        "stateActions": {
+          "idle": {
+            "motion": {
+              "group": "Idle",
+              "index": 0
+            }
+          },
+          "walking": {
+            "motion": {
+              "group": "Tap",
+              "index": 0
+            }
+          },
+          "thinking": {
+            "motion": {
+              "group": "FlickUp",
+              "index": 0
+            }
+          },
+          "done": {
+            "motion": {
+              "group": "Flick3",
+              "index": 0
+            }
+          }
+        },
+        "tapActions": {
+          "single": {
+            "group": "Tap",
+            "index": 0
+          },
+          "double": {
+            "group": "FlickUp",
+            "index": 0
+          },
+          "triple": {
+            "group": "Flick3",
+            "index": 0
+          }
+        }
+      },
+      "palettes": {
+        "idle": {
+          "shell": {
+            "red": 0.83,
+            "green": 0.89,
+            "blue": 0.99,
+            "alpha": 1
+          },
+          "belly": {
+            "red": 0.95,
+            "green": 0.97,
+            "blue": 1.0,
+            "alpha": 1
+          },
+          "accent": {
+            "red": 0.25,
+            "green": 0.36,
+            "blue": 0.63,
+            "alpha": 1
+          },
+          "glow": {
+            "red": 0.64,
+            "green": 0.78,
+            "blue": 0.99,
+            "alpha": 1
+          },
+          "blush": {
+            "red": 0.76,
+            "green": 0.83,
+            "blue": 0.97,
+            "alpha": 1
+          }
+        },
+        "walking": {
+          "shell": {
+            "red": 0.78,
+            "green": 0.86,
+            "blue": 0.99,
+            "alpha": 1
+          },
+          "belly": {
+            "red": 0.92,
+            "green": 0.96,
+            "blue": 1.0,
+            "alpha": 1
+          },
+          "accent": {
+            "red": 0.29,
+            "green": 0.41,
+            "blue": 0.7,
+            "alpha": 1
+          },
+          "glow": {
+            "red": 0.58,
+            "green": 0.77,
+            "blue": 1.0,
+            "alpha": 1
+          },
+          "blush": {
+            "red": 0.73,
+            "green": 0.82,
+            "blue": 0.98,
+            "alpha": 1
+          }
+        },
+        "thinking": {
+          "shell": {
+            "red": 0.84,
+            "green": 0.83,
+            "blue": 0.99,
+            "alpha": 1
+          },
+          "belly": {
+            "red": 0.95,
+            "green": 0.94,
+            "blue": 1.0,
+            "alpha": 1
+          },
+          "accent": {
+            "red": 0.38,
+            "green": 0.31,
+            "blue": 0.67,
+            "alpha": 1
+          },
+          "glow": {
+            "red": 0.76,
+            "green": 0.73,
+            "blue": 1.0,
+            "alpha": 1
+          },
+          "blush": {
+            "red": 0.81,
+            "green": 0.76,
+            "blue": 0.98,
+            "alpha": 1
+          }
+        },
+        "done": {
+          "shell": {
+            "red": 0.91,
+            "green": 0.91,
+            "blue": 1.0,
+            "alpha": 1
+          },
+          "belly": {
+            "red": 0.98,
+            "green": 0.98,
+            "blue": 1.0,
+            "alpha": 1
+          },
+          "accent": {
+            "red": 0.46,
+            "green": 0.49,
+            "blue": 0.8,
+            "alpha": 1
+          },
+          "glow": {
+            "red": 0.8,
+            "green": 0.85,
+            "blue": 1.0,
+            "alpha": 1
+          },
+          "blush": {
+            "red": 0.85,
+            "green": 0.86,
+            "blue": 0.99,
+            "alpha": 1
+          }
+        }
+      },
+      "motion": {
+        "walkSpeedMultiplier": 0.94,
+        "roamRadiusMultiplier": 1.0,
+        "bobAmplitudeMultiplier": 1.0,
+        "stretchMultiplier": 1.0,
+        "tailSwingMultiplier": 0.7,
+        "blinkMinFrames": 110,
+        "blinkMaxFrames": 240,
+        "ambientDelayMinSeconds": 14,
+        "ambientDelayMaxSeconds": 24
+      },
+      "dialogue": {
+        "connectedIdle": [
+          "雫已经到位，可以随时切换动作",
+          "现在不止茉莉，Live2D 角色又多一个了"
+        ],
+        "disconnectedIdle": [
+          "我先在这里待命，等 Lime 恢复连接",
+          "离线也没关系，我会安静地守着"
+        ],
+        "connectedWalking": [
+          "雫也接入进来了，可以在右键里切换",
+          "这套 Live2D 资源现在能直接复用"
+        ],
+        "disconnectedWalking": [
+          "当前离线巡航中，我先保持轻动作",
+          "等连接恢复后，我会继续响应状态变化"
+        ],
+        "thinking": [
+          "让我用另一套 Live2D 动作陪它思考一下",
+          "这次不只是单一模型了"
+        ],
+        "done": [
+          "这一轮完成啦，我来做个收尾动作",
+          "如果想换风格，右键就能切角色"
+        ]
+      },
+      "accessories": {
+        "neck": "none",
+        "head": "flower",
+        "trail": "sparkles",
+        "cheeks": "blush"
+      },
+      "geometry": {
+        "headWidth": 120,
+        "headHeight": 115,
+        "headCornerRadius": 40,
+        "bellyWidth": 65,
+        "bellyHeight": 65,
+        "bellyCornerRadius": 30,
+        "bellyOffsetY": 15,
+        "highlightWidth": 15,
+        "highlightHeight": 45,
+        "highlightOffsetX": -25,
+        "highlightOffsetY": -10,
+        "earWidth": 0,
+        "earHeight": 0,
+        "earSpread": 0,
+        "earOffsetY": 0,
+        "earTilt": 0,
+        "earInnerWidth": 0,
+        "earInnerHeight": 0,
+        "tailWidth": 50,
+        "tailHeight": 20,
+        "tailOffsetX": -35,
+        "tailOffsetY": 20,
+        "haloSize": 125,
+        "shadowWidth": 130,
+        "shadowHeight": 20,
+        "pawWidth": 0,
+        "pawHeight": 0,
+        "pawSpacing": 0,
+        "eyeWhiteWidth": 18,
+        "eyeWhiteHeight": 18,
+        "pupilWidth": 8,
+        "pupilHeight": 8,
+        "eyeSpacing": 28,
+        "eyeOffsetY": -10,
+        "blushSize": 14,
+        "blushSpacing": 38,
+        "blushOffsetY": 8,
+        "mouthWidth": 0.1,
+        "mouthHeight": 0.1,
+        "mouthOffsetY": 15,
+        "whiskerLength": 0,
+        "whiskerThickness": 0,
+        "whiskerSideOffset": 0,
+        "whiskerSpacing": 0,
+        "whiskerRowSpacing": 0,
+        "whiskerOffsetY": 0,
+        "badgeSize": 20,
+        "badgeOffsetX": 30,
+        "badgeOffsetY": -30,
+        "scarfWidth": 0,
+        "scarfHeight": 0,
+        "scarfOffsetY": 0,
+        "scarfTailWidth": 0,
+        "scarfTailHeight": 0,
+        "scarfTailOffsetX": 0,
+        "scarfTailOffsetY": 0,
+        "crestSize": 20,
+        "crestOffsetY": -45
+      },
+      "symbols": {
+        "menuBar": "moon.stars.fill",
+        "connectedStatus": "sparkles",
+        "disconnectedStatus": "wifi.slash",
+        "thinkingPrimary": "brain.head.profile",
+        "donePrimary": "moon.stars.fill",
+        "doneSecondary": "checkmark.circle.fill",
+        "crest": "moon.stars.fill"
+      }
     }
   ]
 }
