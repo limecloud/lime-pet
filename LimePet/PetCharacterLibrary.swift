@@ -224,6 +224,61 @@ struct PetCharacterTheme: Identifiable, Codable, Hashable {
     let geometry: PetCharacterGeometry
     let symbols: PetCharacterSymbols
 
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case displayName
+        case switchBubble
+        case renderer
+        case live2d
+        case palettes
+        case motion
+        case dialogue
+        case accessories
+        case geometry
+        case symbols
+    }
+
+    init(
+        id: String,
+        displayName: String,
+        switchBubble: String,
+        renderer: PetRendererKind? = nil,
+        live2d: PetLive2DConfiguration? = nil,
+        palettes: PetCharacterStatePalettes = Self.defaultPalettes,
+        motion: PetCharacterMotion = Self.defaultMotion,
+        dialogue: PetCharacterDialogue = Self.defaultDialogue,
+        accessories: PetCharacterAccessories = Self.defaultAccessories,
+        geometry: PetCharacterGeometry = Self.defaultGeometry,
+        symbols: PetCharacterSymbols = Self.defaultSymbols
+    ) {
+        self.id = id
+        self.displayName = displayName
+        self.switchBubble = switchBubble
+        self.renderer = renderer
+        self.live2d = live2d
+        self.palettes = palettes
+        self.motion = motion
+        self.dialogue = dialogue
+        self.accessories = accessories
+        self.geometry = geometry
+        self.symbols = symbols
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        displayName = try container.decode(String.self, forKey: .displayName)
+        switchBubble = try container.decode(String.self, forKey: .switchBubble)
+        renderer = try container.decodeIfPresent(PetRendererKind.self, forKey: .renderer)
+        live2d = try container.decodeIfPresent(PetLive2DConfiguration.self, forKey: .live2d)
+        palettes = try container.decodeIfPresent(PetCharacterStatePalettes.self, forKey: .palettes) ?? Self.defaultPalettes
+        motion = try container.decodeIfPresent(PetCharacterMotion.self, forKey: .motion) ?? Self.defaultMotion
+        dialogue = try container.decodeIfPresent(PetCharacterDialogue.self, forKey: .dialogue) ?? Self.defaultDialogue
+        accessories = try container.decodeIfPresent(PetCharacterAccessories.self, forKey: .accessories) ?? Self.defaultAccessories
+        geometry = try container.decodeIfPresent(PetCharacterGeometry.self, forKey: .geometry) ?? Self.defaultGeometry
+        symbols = try container.decodeIfPresent(PetCharacterSymbols.self, forKey: .symbols) ?? Self.defaultSymbols
+    }
+
     var rendererKind: PetRendererKind {
         renderer ?? .sprite
     }
@@ -242,6 +297,156 @@ struct PetCharacterTheme: Identifiable, Codable, Hashable {
             return palettes.done.resolved()
         }
     }
+}
+
+private extension PetCharacterTheme {
+    static let defaultPalettes = PetCharacterStatePalettes(
+        idle: PetPaletteTokens(
+            shell: PetColorToken(red: 0.25, green: 0.63, blue: 0.89, alpha: 1),
+            belly: PetColorToken(red: 0.84, green: 0.95, blue: 1.00, alpha: 1),
+            accent: PetColorToken(red: 0.12, green: 0.29, blue: 0.44, alpha: 1),
+            glow: PetColorToken(red: 0.53, green: 0.82, blue: 1.00, alpha: 1),
+            blush: PetColorToken(red: 0.90, green: 0.67, blue: 0.78, alpha: 1)
+        ),
+        walking: PetPaletteTokens(
+            shell: PetColorToken(red: 0.31, green: 0.72, blue: 0.55, alpha: 1),
+            belly: PetColorToken(red: 0.90, green: 0.98, blue: 0.94, alpha: 1),
+            accent: PetColorToken(red: 0.10, green: 0.34, blue: 0.24, alpha: 1),
+            glow: PetColorToken(red: 0.57, green: 0.91, blue: 0.74, alpha: 1),
+            blush: PetColorToken(red: 0.98, green: 0.72, blue: 0.74, alpha: 1)
+        ),
+        thinking: PetPaletteTokens(
+            shell: PetColorToken(red: 0.98, green: 0.69, blue: 0.31, alpha: 1),
+            belly: PetColorToken(red: 1.00, green: 0.94, blue: 0.79, alpha: 1),
+            accent: PetColorToken(red: 0.54, green: 0.28, blue: 0.06, alpha: 1),
+            glow: PetColorToken(red: 1.00, green: 0.82, blue: 0.54, alpha: 1),
+            blush: PetColorToken(red: 0.98, green: 0.78, blue: 0.70, alpha: 1)
+        ),
+        done: PetPaletteTokens(
+            shell: PetColorToken(red: 0.66, green: 0.48, blue: 0.91, alpha: 1),
+            belly: PetColorToken(red: 0.95, green: 0.92, blue: 1.00, alpha: 1),
+            accent: PetColorToken(red: 0.29, green: 0.13, blue: 0.54, alpha: 1),
+            glow: PetColorToken(red: 0.83, green: 0.72, blue: 1.00, alpha: 1),
+            blush: PetColorToken(red: 0.96, green: 0.75, blue: 0.82, alpha: 1)
+        )
+    )
+
+    static let defaultMotion = PetCharacterMotion(
+        walkSpeedMultiplier: 1.0,
+        roamRadiusMultiplier: 1.0,
+        bobAmplitudeMultiplier: 1.0,
+        stretchMultiplier: 1.0,
+        tailSwingMultiplier: 1.0,
+        blinkMinFrames: 90,
+        blinkMaxFrames: 220,
+        ambientDelayMinSeconds: 11,
+        ambientDelayMaxSeconds: 19
+    )
+
+    static let defaultDialogue = PetCharacterDialogue(
+        connectedIdle: [
+            "我在这里帮你盯着 Lime",
+            "先在旁边待命，有动静我会冒泡"
+        ],
+        disconnectedIdle: [
+            "我还在等 Lime 连上来",
+            "先陪你守着，等它上线"
+        ],
+        connectedWalking: [
+            "我先去巡一圈桌面边缘",
+            "这边我先替你看着"
+        ],
+        disconnectedWalking: [
+            "离线时我也会继续巡航",
+            "先慢慢逛着，等 Lime 回来"
+        ],
+        thinking: [
+            "我先在旁边陪它想一会",
+            "有进展我会先提醒你"
+        ],
+        done: [
+            "刚刚那件事已经完成啦",
+            "如果你愿意，我还能继续帮你叫出 Lime"
+        ]
+    )
+
+    static let defaultAccessories = PetCharacterAccessories(
+        neck: .scarf,
+        head: .crest,
+        trail: .glowDots,
+        cheeks: .blush
+    )
+
+    static let defaultGeometry = PetCharacterGeometry(
+        headWidth: 114,
+        headHeight: 110,
+        headCornerRadius: 34,
+        bellyWidth: 58,
+        bellyHeight: 62,
+        bellyCornerRadius: 26,
+        bellyOffsetY: 16,
+        highlightWidth: 22,
+        highlightHeight: 56,
+        highlightOffsetX: -24,
+        highlightOffsetY: -6,
+        earWidth: 28,
+        earHeight: 46,
+        earSpread: 42,
+        earOffsetY: -60,
+        earTilt: 18,
+        earInnerWidth: 12,
+        earInnerHeight: 22,
+        tailWidth: 76,
+        tailHeight: 22,
+        tailOffsetX: -44,
+        tailOffsetY: 18,
+        haloSize: 118,
+        shadowWidth: 142,
+        shadowHeight: 22,
+        pawWidth: 18,
+        pawHeight: 46,
+        pawSpacing: 34,
+        eyeWhiteWidth: 14,
+        eyeWhiteHeight: 16,
+        pupilWidth: 6.5,
+        pupilHeight: 9,
+        eyeSpacing: 18,
+        eyeOffsetY: -14,
+        blushSize: 11,
+        blushSpacing: 30,
+        blushOffsetY: 4,
+        mouthWidth: 28,
+        mouthHeight: 14,
+        mouthOffsetY: 20,
+        whiskerLength: 22,
+        whiskerThickness: 2.4,
+        whiskerSideOffset: 10,
+        whiskerSpacing: 46,
+        whiskerRowSpacing: 8,
+        whiskerOffsetY: 10,
+        badgeSize: 20,
+        badgeOffsetX: 30,
+        badgeOffsetY: -30,
+        scarfWidth: 74,
+        scarfHeight: 16,
+        scarfOffsetY: 34,
+        scarfTailWidth: 20,
+        scarfTailHeight: 24,
+        scarfTailOffsetX: 28,
+        scarfTailOffsetY: 42,
+        crestSize: 14,
+        crestOffsetY: -36
+    )
+
+    static let defaultSymbols = PetCharacterSymbols(
+        menuBar: "leaf.fill",
+        connectedStatus: "bolt.fill",
+        disconnectedStatus: "wifi.slash",
+        thinkingPrimary: "brain.head.profile",
+        donePrimary: "sparkles",
+        doneSecondary: "checkmark.circle.fill",
+        crest: "leaf.circle.fill"
+    )
 }
 
 struct PetCharacterCatalog: Codable {
@@ -327,152 +532,9 @@ final class PetCharacterLibrary {
 
 extension PetCharacterTheme {
     static let fallback = PetCharacterTheme(
-        id: "lime-scout",
-        displayName: "青柠巡游",
-        switchBubble: "切换到青柠巡游形态",
-        renderer: .sprite,
-        live2d: nil,
-        palettes: PetCharacterStatePalettes(
-            idle: PetPaletteTokens(
-                shell: PetColorToken(red: 0.25, green: 0.63, blue: 0.89, alpha: 1),
-                belly: PetColorToken(red: 0.84, green: 0.95, blue: 1.00, alpha: 1),
-                accent: PetColorToken(red: 0.12, green: 0.29, blue: 0.44, alpha: 1),
-                glow: PetColorToken(red: 0.53, green: 0.82, blue: 1.00, alpha: 1),
-                blush: PetColorToken(red: 0.90, green: 0.67, blue: 0.78, alpha: 1)
-            ),
-            walking: PetPaletteTokens(
-                shell: PetColorToken(red: 0.31, green: 0.72, blue: 0.55, alpha: 1),
-                belly: PetColorToken(red: 0.90, green: 0.98, blue: 0.94, alpha: 1),
-                accent: PetColorToken(red: 0.10, green: 0.34, blue: 0.24, alpha: 1),
-                glow: PetColorToken(red: 0.57, green: 0.91, blue: 0.74, alpha: 1),
-                blush: PetColorToken(red: 0.98, green: 0.72, blue: 0.74, alpha: 1)
-            ),
-            thinking: PetPaletteTokens(
-                shell: PetColorToken(red: 0.98, green: 0.69, blue: 0.31, alpha: 1),
-                belly: PetColorToken(red: 1.00, green: 0.94, blue: 0.79, alpha: 1),
-                accent: PetColorToken(red: 0.54, green: 0.28, blue: 0.06, alpha: 1),
-                glow: PetColorToken(red: 1.00, green: 0.82, blue: 0.54, alpha: 1),
-                blush: PetColorToken(red: 0.98, green: 0.78, blue: 0.70, alpha: 1)
-            ),
-            done: PetPaletteTokens(
-                shell: PetColorToken(red: 0.66, green: 0.48, blue: 0.91, alpha: 1),
-                belly: PetColorToken(red: 0.95, green: 0.92, blue: 1.00, alpha: 1),
-                accent: PetColorToken(red: 0.29, green: 0.13, blue: 0.54, alpha: 1),
-                glow: PetColorToken(red: 0.83, green: 0.72, blue: 1.00, alpha: 1),
-                blush: PetColorToken(red: 0.96, green: 0.75, blue: 0.82, alpha: 1)
-            )
-        ),
-        motion: PetCharacterMotion(
-            walkSpeedMultiplier: 1.0,
-            roamRadiusMultiplier: 1.0,
-            bobAmplitudeMultiplier: 1.0,
-            stretchMultiplier: 1.0,
-            tailSwingMultiplier: 1.0,
-            blinkMinFrames: 90,
-            blinkMaxFrames: 220,
-            ambientDelayMinSeconds: 11,
-            ambientDelayMaxSeconds: 19
-        ),
-        dialogue: PetCharacterDialogue(
-            connectedIdle: [
-                "我在这里帮你盯着 Lime",
-                "先在旁边待命，有动静我会冒泡"
-            ],
-            disconnectedIdle: [
-                "我还在等 Lime 连上来",
-                "先陪你守着，等它上线"
-            ],
-            connectedWalking: [
-                "我先去巡一圈桌面边缘",
-                "这边我先替你看着"
-            ],
-            disconnectedWalking: [
-                "离线时我也会继续巡航",
-                "先慢慢逛着，等 Lime 回来"
-            ],
-            thinking: [
-                "我先在旁边陪它想一会",
-                "有进展我会先提醒你"
-            ],
-            done: [
-                "刚刚那件事已经完成啦",
-                "如果你愿意，我还能继续帮你叫出 Lime"
-            ]
-        ),
-        accessories: PetCharacterAccessories(
-            neck: .scarf,
-            head: .crest,
-            trail: .glowDots,
-            cheeks: .blush
-        ),
-        geometry: PetCharacterGeometry(
-            headWidth: 114,
-            headHeight: 110,
-            headCornerRadius: 34,
-            bellyWidth: 58,
-            bellyHeight: 62,
-            bellyCornerRadius: 26,
-            bellyOffsetY: 16,
-            highlightWidth: 22,
-            highlightHeight: 56,
-            highlightOffsetX: -24,
-            highlightOffsetY: -6,
-            earWidth: 28,
-            earHeight: 46,
-            earSpread: 42,
-            earOffsetY: -60,
-            earTilt: 18,
-            earInnerWidth: 12,
-            earInnerHeight: 22,
-            tailWidth: 76,
-            tailHeight: 22,
-            tailOffsetX: -44,
-            tailOffsetY: 18,
-            haloSize: 118,
-            shadowWidth: 142,
-            shadowHeight: 22,
-            pawWidth: 18,
-            pawHeight: 46,
-            pawSpacing: 34,
-            eyeWhiteWidth: 14,
-            eyeWhiteHeight: 16,
-            pupilWidth: 6.5,
-            pupilHeight: 9,
-            eyeSpacing: 18,
-            eyeOffsetY: -14,
-            blushSize: 11,
-            blushSpacing: 30,
-            blushOffsetY: 4,
-            mouthWidth: 28,
-            mouthHeight: 14,
-            mouthOffsetY: 20,
-            whiskerLength: 22,
-            whiskerThickness: 2.4,
-            whiskerSideOffset: 10,
-            whiskerSpacing: 46,
-            whiskerRowSpacing: 8,
-            whiskerOffsetY: 10,
-            badgeSize: 20,
-            badgeOffsetX: 30,
-            badgeOffsetY: -30,
-            scarfWidth: 74,
-            scarfHeight: 16,
-            scarfOffsetY: 34,
-            scarfTailWidth: 20,
-            scarfTailHeight: 24,
-            scarfTailOffsetX: 28,
-            scarfTailOffsetY: 42,
-            crestSize: 14,
-            crestOffsetY: -36
-        ),
-        symbols: PetCharacterSymbols(
-            menuBar: "leaf.fill",
-            connectedStatus: "bolt.fill",
-            disconnectedStatus: "wifi.slash",
-            thinkingPrimary: "brain.head.profile",
-            donePrimary: "sparkles",
-            doneSecondary: "checkmark.circle.fill",
-            crest: "leaf.circle.fill"
-        )
+        id: "dewy-lime",
+        displayName: "雾隐青柠",
+        switchBubble: "切换到青柠守望形态",
+        renderer: .sprite
     )
 }

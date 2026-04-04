@@ -89,8 +89,9 @@
       (async () => {
         try {
           await loadScript(["./vendor/pixi.min.js", "./pixi.min.js"]);
+          await loadScript(["./vendor/live2d.min.js", "./live2d.min.js"]);
           await loadScript(["./vendor/live2dcubismcore.min.js", "./live2dcubismcore.min.js"]);
-          await loadScript(["./vendor/pixi-live2d-cubism4.min.js", "./pixi-live2d-cubism4.min.js"]);
+          await loadScript(["./vendor/pixi-live2d-index.min.js", "./pixi-live2d-index.min.js"]);
           await loadScript(["./runtime.js"]);
         } catch (error) {
           const status = document.getElementById("status");

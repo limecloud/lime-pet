@@ -9,6 +9,7 @@ CONTENTS_DIR="${APP_DIR}/Contents"
 MACOS_DIR="${CONTENTS_DIR}/MacOS"
 RESOURCES_DIR="${CONTENTS_DIR}/Resources"
 PLIST_TEMPLATE="${SCRIPT_DIR}/Info.no-xcode.plist"
+LIVE2D_SYNC_SCRIPT="${SCRIPT_DIR}/sync-app-live2d-assets.mjs"
 
 CONFIGURATION="debug"
 VERSION=""
@@ -42,6 +43,11 @@ fi
 
 if [[ ! -f "${PLIST_TEMPLATE}" ]]; then
   echo "未找到 Info.plist 模板: ${PLIST_TEMPLATE}" >&2
+  exit 1
+fi
+
+if [[ ! -f "${LIVE2D_SYNC_SCRIPT}" ]]; then
+  echo "未找到 Live2D 资源同步脚本: ${LIVE2D_SYNC_SCRIPT}" >&2
   exit 1
 fi
 
@@ -79,6 +85,24 @@ cp "${PLIST_TEMPLATE}" "${CONTENTS_DIR}/Info.plist"
 if [[ -n "${RESOURCE_BUNDLE_PATH}" ]]; then
   cp -R "${RESOURCE_BUNDLE_PATH}" "${RESOURCES_DIR}/"
 fi
+
+TARGET_RESOURCE_ROOT="${RESOURCES_DIR}"
+if [[ -n "${RESOURCE_BUNDLE_PATH}" ]]; then
+  TARGET_RESOURCE_ROOT="${RESOURCES_DIR}/$(basename "${RESOURCE_BUNDLE_PATH}")"
+fi
+
+mkdir -p "${TARGET_RESOURCE_ROOT}"
+cp "${REPO_ROOT}/LimePet/Resources/character-library.json" "${TARGET_RESOURCE_ROOT}/character-library.json"
+if ! command -v node >/dev/null 2>&1; then
+  echo "未找到 node，无法裁剪 Live2D 模型资源" >&2
+  exit 1
+fi
+
+node "${LIVE2D_SYNC_SCRIPT}" \
+  --source "${REPO_ROOT}/LimePet/Resources/live2d-models" \
+  --target "${TARGET_RESOURCE_ROOT}/live2d-models" \
+  --catalog "${REPO_ROOT}/LimePet/Resources/character-library.json"
+rsync -a "${REPO_ROOT}/LimePet/Resources/live2d-runtime"/ "${TARGET_RESOURCE_ROOT}/live2d-runtime"/
 
 chmod +x "${MACOS_DIR}/LimePet"
 

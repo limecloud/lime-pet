@@ -9,6 +9,7 @@ export type PetState =
 
 export type PetRendererKind = "sprite" | "live2d";
 export type PetLive2DTapKind = "single" | "double" | "triple";
+export type PetLive2DLayoutMode = "contain" | "manual";
 
 export interface PetLive2DMotion {
   group: string;
@@ -20,11 +21,23 @@ export interface PetLive2DStateAction {
   motion?: PetLive2DMotion;
 }
 
+export interface PetLive2DStageStyle {
+  width?: number | null;
+  height?: number | null;
+}
+
 export interface PetLive2DConfiguration {
   modelPath: string;
+  modelPaths?: string[] | null;
+  layoutMode?: PetLive2DLayoutMode;
   scale: number;
   offsetX: number;
   offsetY: number;
+  positionX?: number | null;
+  positionY?: number | null;
+  anchorX?: number | null;
+  anchorY?: number | null;
+  stageStyle?: PetLive2DStageStyle | null;
   emotionMap: Record<string, number>;
   stateActions: Partial<Record<Exclude<PetState, "hidden">, PetLive2DStateAction>>;
   tapActions: Partial<Record<PetLive2DTapKind, PetLive2DMotion>>;
@@ -143,6 +156,16 @@ export function live2dEnvelopeAction(
   return {
     expressionIndices,
     motion
+  };
+}
+
+export function live2dStageSize(configuration?: PetLive2DConfiguration | null): { width: number; height: number } {
+  const width = typeof configuration?.stageStyle?.width === "number" ? configuration.stageStyle.width : 320;
+  const height = typeof configuration?.stageStyle?.height === "number" ? configuration.stageStyle.height : 320;
+
+  return {
+    width,
+    height
   };
 }
 

@@ -5,8 +5,9 @@ struct PetRenderSurface: View {
     let palette: PetRenderPalette
 
     private var surfaceSize: CGSize {
-        if sceneModel.character.rendererKind == .live2d {
-            return CGSize(width: 300, height: 300)
+        if sceneModel.character.rendererKind == .live2d,
+           let configuration = sceneModel.resolvedLive2DConfiguration {
+            return configuration.resolvedStageSize
         }
 
         return CGSize(width: 156, height: 176)
@@ -14,7 +15,8 @@ struct PetRenderSurface: View {
 
     var body: some View {
         Group {
-            if sceneModel.character.rendererKind == .live2d, let configuration = sceneModel.character.live2d {
+            if sceneModel.character.rendererKind == .live2d,
+               let configuration = sceneModel.resolvedLive2DConfiguration {
                 PetLive2DHostView(sceneModel: sceneModel, configuration: configuration)
                     .allowsHitTesting(false)
             } else {

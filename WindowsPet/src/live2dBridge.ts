@@ -28,14 +28,33 @@ export class Live2DFrameDriver {
   }
 
   loadModel(configuration: PetLive2DConfiguration): void {
+    const payload: Record<string, unknown> = {
+      modelPath: configuration.modelPath,
+      layoutMode: configuration.layoutMode ?? "contain",
+      scale: configuration.scale,
+      offsetX: configuration.offsetX,
+      offsetY: configuration.offsetY
+    };
+
+    if (typeof configuration.positionX === "number") {
+      payload.positionX = configuration.positionX;
+    }
+    if (typeof configuration.positionY === "number") {
+      payload.positionY = configuration.positionY;
+    }
+    if (typeof configuration.anchorX === "number") {
+      payload.anchorX = configuration.anchorX;
+    }
+    if (typeof configuration.anchorY === "number") {
+      payload.anchorY = configuration.anchorY;
+    }
+    if (configuration.stageStyle) {
+      payload.stageStyle = configuration.stageStyle;
+    }
+
     this.post({
       type: "load-model",
-      payload: {
-        modelPath: configuration.modelPath,
-        scale: configuration.scale,
-        offsetX: configuration.offsetX,
-        offsetY: configuration.offsetY
-      }
+      payload
     });
   }
 

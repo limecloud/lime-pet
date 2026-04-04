@@ -19,6 +19,11 @@
 		C2000001000000000000000A /* dewy-lime-shadow.png in Resources */ = {isa = PBXBuildFile; fileRef = C2000002000000000000000B /* dewy-lime-shadow.png */; };
 		C2000001000000000000000B /* PetConversationPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000002000000000000000C /* PetConversationPrompt.swift */; };
 		C2000001000000000000000C /* PetSpeechCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2000002000000000000000D /* PetSpeechCoordinator.swift */; };
+		C2000001000000000000000D /* dewy-lime.png in Resources */ = {isa = PBXBuildFile; fileRef = C2000002000000000000000E /* dewy-lime.png */; };
+		C2000001000000000000000E /* dewy-lime-cutout.png in Resources */ = {isa = PBXBuildFile; fileRef = C2000002000000000000000F /* dewy-lime-cutout.png */; };
+		C2000001000000000000000F /* dewy-lime-transparent.png in Resources */ = {isa = PBXBuildFile; fileRef = C20000020000000000000010 /* dewy-lime-transparent.png */; };
+		C20000010000000000000010 /* live2d-runtime in Resources */ = {isa = PBXBuildFile; fileRef = C20000020000000000000011 /* live2d-runtime */; };
+		C20000010000000000000011 /* live2d-models in Resources */ = {isa = PBXBuildFile; fileRef = C20000020000000000000012 /* live2d-models */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +40,11 @@
 		C2000002000000000000000B /* dewy-lime-shadow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "dewy-lime-shadow.png"; sourceTree = "<group>"; };
 		C2000002000000000000000C /* PetConversationPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetConversationPrompt.swift; sourceTree = "<group>"; };
 		C2000002000000000000000D /* PetSpeechCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetSpeechCoordinator.swift; sourceTree = "<group>"; };
+		C2000002000000000000000E /* dewy-lime.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "dewy-lime.png"; sourceTree = "<group>"; };
+		C2000002000000000000000F /* dewy-lime-cutout.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "dewy-lime-cutout.png"; sourceTree = "<group>"; };
+		C20000020000000000000010 /* dewy-lime-transparent.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "dewy-lime-transparent.png"; sourceTree = "<group>"; };
+		C20000020000000000000011 /* live2d-runtime */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "live2d-runtime"; sourceTree = "<group>"; };
+		C20000020000000000000012 /* live2d-models */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "live2d-models"; sourceTree = "<group>"; };
 		C20000030000000000000001 /* Lime Pet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Lime Pet.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -81,6 +91,11 @@
 			children = (
 				C2000002000000000000000A /* character-library.json */,
 				C2000002000000000000000B /* dewy-lime-shadow.png */,
+				C2000002000000000000000E /* dewy-lime.png */,
+				C2000002000000000000000F /* dewy-lime-cutout.png */,
+				C20000020000000000000010 /* dewy-lime-transparent.png */,
+				C20000020000000000000011 /* live2d-runtime */,
+				C20000020000000000000012 /* live2d-models */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -154,6 +169,11 @@
 			files = (
 				C20000010000000000000009 /* character-library.json in Resources */,
 				C2000001000000000000000A /* dewy-lime-shadow.png in Resources */,
+				C2000001000000000000000D /* dewy-lime.png in Resources */,
+				C2000001000000000000000E /* dewy-lime-cutout.png in Resources */,
+				C2000001000000000000000F /* dewy-lime-transparent.png in Resources */,
+				C20000010000000000000010 /* live2d-runtime in Resources */,
+				C20000010000000000000011 /* live2d-models in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

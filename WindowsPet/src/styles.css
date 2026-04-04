@@ -7,6 +7,15 @@
   --lime-core: rgba(236, 255, 242, 0.82);
   --lime-deep: rgba(98, 159, 122, 0.92);
   --lime-shadow: rgba(43, 77, 63, 0.18);
+  --ui-surface: rgba(244, 255, 248, 0.78);
+  --ui-surface-strong: rgba(246, 255, 249, 0.92);
+  --ui-surface-soft: rgba(225, 255, 233, 0.52);
+  --ui-border: rgba(255, 255, 255, 0.7);
+  --ui-text: rgba(26, 46, 33, 0.92);
+  --ui-muted: rgba(83, 120, 96, 0.88);
+  --ui-shadow: 0 18px 38px rgba(31, 53, 40, 0.18);
+  --ui-accent: rgba(95, 147, 118, 0.82);
+  --ui-accent-soft: rgba(190, 255, 214, 0.34);
 }
 
 html,
@@ -30,19 +39,18 @@ button {
 
 .pet-shell {
   position: relative;
-  width: 280px;
-  height: 300px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
+  width: var(--shell-width, 440px);
+  height: var(--shell-height, 440px);
+  display: grid;
+  place-items: end center;
   isolation: isolate;
+  overflow: visible;
 }
 
 .bubble {
   position: absolute;
-  top: 6px;
-  max-width: 220px;
+  top: 18px;
+  max-width: 260px;
   min-height: 20px;
   padding: 11px 14px;
   border-radius: 18px;
@@ -85,11 +93,11 @@ button {
 
 .pet-stage {
   position: relative;
-  width: 220px;
-  height: 220px;
+  width: var(--stage-width, 320px);
+  height: var(--stage-height, 320px);
   display: grid;
   place-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
 
 .pet-floor-shadow,
@@ -103,9 +111,9 @@ button {
 }
 
 .pet-floor-shadow {
-  bottom: 16px;
-  width: 96px;
-  height: 20px;
+  bottom: 20px;
+  width: 126px;
+  height: 24px;
   border-radius: 999px;
   background: rgba(23, 33, 28, 0.16);
   filter: blur(7px);
@@ -113,9 +121,9 @@ button {
 }
 
 .pet-floor-glow {
-  bottom: 12px;
-  width: 118px;
-  height: 32px;
+  bottom: 16px;
+  width: 164px;
+  height: 40px;
   border-radius: 999px;
   background: radial-gradient(circle, rgba(171, 255, 209, 0.38), transparent 72%);
   filter: blur(10px);
@@ -123,8 +131,8 @@ button {
 }
 
 .pet-aura-ring {
-  width: 152px;
-  height: 152px;
+  width: 224px;
+  height: 224px;
   border-radius: 50%;
   border: 1px solid rgba(223, 255, 236, 0.22);
   filter: blur(0.3px);
@@ -136,15 +144,15 @@ button {
 }
 
 .aura-ring-two {
-  width: 134px;
-  height: 134px;
+  width: 198px;
+  height: 198px;
   border-color: rgba(194, 255, 224, 0.18);
   animation: reverse-spin 10.5s linear infinite;
 }
 
 .pet-ripple {
-  width: 102px;
-  height: 102px;
+  width: 170px;
+  height: 170px;
   border-radius: 50%;
   border: 2px solid rgba(223, 255, 236, 0.18);
   opacity: 0;
@@ -159,7 +167,7 @@ button {
 }
 
 .pet-motes-soft {
-  inset: 18px 24px 60px;
+  inset: 26px 34px 82px;
 }
 
 .pet-motes-soft span,
@@ -199,8 +207,8 @@ button {
 }
 
 .pet-motes-orbit {
-  width: 164px;
-  height: 164px;
+  width: 236px;
+  height: 236px;
   animation: slow-spin 18s linear infinite;
 }
 
@@ -238,8 +246,8 @@ button {
 }
 
 .pet-sparkles {
-  width: 156px;
-  height: 156px;
+  width: 214px;
+  height: 214px;
   opacity: 0;
   transform: scale(0.94);
 }
@@ -276,8 +284,8 @@ button {
 
 .pet-button {
   position: relative;
-  width: 156px;
-  height: 156px;
+  width: 100%;
+  height: 100%;
   display: grid;
   place-items: center;
   padding: 0;
@@ -295,7 +303,7 @@ button {
 .pet-button:focus-visible::after {
   content: "";
   position: absolute;
-  inset: 8px;
+  inset: 18px;
   border-radius: 50%;
   border: 2px solid rgba(245, 255, 249, 0.72);
 }
@@ -303,8 +311,8 @@ button {
 .pet-image {
   position: relative;
   z-index: 2;
-  width: 148px;
-  height: 148px;
+  width: 186px;
+  height: 186px;
   object-fit: contain;
   pointer-events: none;
   filter:
@@ -314,10 +322,10 @@ button {
 
 .pet-live2d-frame {
   position: absolute;
-  inset: 2px;
+  inset: 0;
   z-index: 1;
-  width: calc(100% - 4px);
-  height: calc(100% - 4px);
+  width: 100%;
+  height: 100%;
   border: 0;
   background: transparent;
   pointer-events: none;
@@ -330,7 +338,7 @@ button {
 
 .pet-shimmer {
   position: absolute;
-  inset: 16px;
+  inset: 46px;
   border-radius: 50%;
   background: linear-gradient(
     118deg,
@@ -346,12 +354,43 @@ button {
   pointer-events: none;
 }
 
-.status-bar {
+.status-card {
+  position: absolute;
+  top: 18px;
+  z-index: 12;
+  width: 170px;
+  display: grid;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--ui-surface-strong), rgba(226, 255, 235, 0.82));
+  border: 1px solid var(--ui-border);
+  box-shadow: var(--ui-shadow);
+  backdrop-filter: blur(14px);
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease;
+}
+
+.pet-shell.dock-right .status-card {
+  left: 18px;
+}
+
+.pet-shell.dock-left .status-card {
+  right: 18px;
+}
+
+.status-card-head {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-  justify-content: center;
-  min-height: 28px;
+}
+
+.status-card-body {
+  display: grid;
+  gap: 8px;
 }
 
 .status-pill,
@@ -376,21 +415,207 @@ button {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
+.status-eyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ui-muted);
+}
+
+.status-copy {
+  margin: 0;
+  color: var(--ui-text);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.status-action {
+  justify-self: start;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(83, 139, 104, 0.88);
+  color: rgba(248, 255, 250, 0.98);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.status-action.hidden {
+  display: none;
+}
+
+.status-card.tone-success {
+  border-color: rgba(182, 245, 199, 0.78);
+}
+
+.status-card.tone-warning {
+  border-color: rgba(255, 220, 160, 0.8);
+}
+
+.status-card.tone-error {
+  border-color: rgba(255, 170, 170, 0.82);
+  box-shadow: 0 18px 42px rgba(143, 55, 55, 0.18);
+}
+
+.quick-menu {
+  position: absolute;
+  top: 118px;
+  z-index: 14;
+  display: grid;
+  gap: 10px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 180ms ease,
+    transform 220ms ease,
+    visibility 180ms ease;
+}
+
+.pet-shell.dock-right .quick-menu {
+  left: 18px;
+  transform: translateX(-10px);
+}
+
+.pet-shell.dock-left .quick-menu {
+  right: 18px;
+  transform: translateX(10px);
+}
+
+.pet-shell:hover .quick-menu,
+.pet-shell.drawer-open .quick-menu,
+.pet-shell.details-open .quick-menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+.quick-item {
+  width: 56px;
+  min-height: 56px;
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  padding: 7px 0 6px;
+  border: 0;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(248, 255, 250, 0.94), rgba(223, 255, 232, 0.82));
+  color: var(--ui-text);
+  box-shadow:
+    0 14px 28px rgba(44, 75, 59, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.68);
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    background 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.quick-item:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, rgba(108, 166, 128, 0.92), rgba(83, 139, 104, 0.92));
+  color: rgba(248, 255, 249, 0.98);
+  box-shadow: 0 18px 36px rgba(44, 75, 59, 0.24);
+}
+
+.quick-icon {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.quick-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.model-drawer,
 .context-menu {
   position: absolute;
   z-index: 20;
-  width: 244px;
+  width: 248px;
   display: grid;
-  gap: 4px;
-  padding: 6px;
-  border-radius: 14px;
-  background: rgba(248, 255, 250, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  box-shadow: 0 18px 38px rgba(31, 53, 40, 0.2);
+  gap: 6px;
+  padding: 10px;
+  border-radius: 18px;
+  background: rgba(248, 255, 250, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  box-shadow: var(--ui-shadow);
+  backdrop-filter: blur(14px);
+  max-height: 300px;
+  overflow: auto;
+  transition:
+    opacity 180ms ease,
+    transform 220ms ease,
+    visibility 180ms ease;
 }
 
+.pet-shell.dock-right .model-drawer,
+.pet-shell.dock-right .context-menu {
+  left: 86px;
+}
+
+.pet-shell.dock-left .model-drawer,
+.pet-shell.dock-left .context-menu {
+  right: 86px;
+}
+
+.model-drawer {
+  top: 108px;
+  opacity: 1;
+}
+
+.context-menu {
+  top: 168px;
+}
+
+.model-drawer.hidden,
 .context-menu.hidden {
-  display: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.pet-shell.dock-right .model-drawer.hidden,
+.pet-shell.dock-right .context-menu.hidden {
+  transform: translateX(-12px) scale(0.97);
+}
+
+.pet-shell.dock-left .model-drawer.hidden,
+.pet-shell.dock-left .context-menu.hidden {
+  transform: translateX(12px) scale(0.97);
+}
+
+.panel-header {
+  display: grid;
+  gap: 4px;
+  padding: 2px 4px 8px;
+}
+
+.panel-title {
+  margin: 0;
+  color: var(--ui-text);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.panel-subtitle {
+  margin: 0;
+  color: var(--ui-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.model-drawer-list {
+  display: grid;
+  gap: 8px;
 }
 
 .context-section {
@@ -445,7 +670,7 @@ button {
   padding: 9px 10px;
   border: 0;
   border-radius: 10px;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.32);
   color: rgba(34, 50, 39, 0.92);
   text-align: left;
   cursor: pointer;
@@ -462,6 +687,54 @@ button {
 
 .context-item.danger {
   color: rgba(143, 55, 55, 0.92);
+}
+
+.model-chip {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(223, 255, 231, 0.52));
+  color: var(--ui-text);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.42);
+}
+
+.model-chip:hover {
+  background: linear-gradient(180deg, rgba(206, 255, 219, 0.76), rgba(181, 246, 198, 0.62));
+}
+
+.model-chip.active {
+  background: linear-gradient(180deg, rgba(118, 176, 138, 0.94), rgba(93, 148, 114, 0.92));
+  color: rgba(248, 255, 249, 0.98);
+  box-shadow:
+    0 14px 24px rgba(44, 75, 59, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.model-chip-title {
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.model-chip-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.model-chip-badge {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
 }
 
 .pet-shell.disconnected .pet-image,

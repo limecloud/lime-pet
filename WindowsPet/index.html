@@ -10,10 +10,62 @@
     <script type="module" src="/src/main.ts"></script>
   </head>
   <body>
-    <main class="pet-shell state-walking disconnected" id="app">
+    <main class="pet-shell state-walking disconnected dock-right" id="app">
       <section class="bubble" id="bubble" aria-live="polite"></section>
 
-      <div class="context-menu hidden" id="contextMenu" role="menu">
+      <aside class="status-card tone-info" id="statusCard" aria-live="polite">
+        <div class="status-card-head">
+          <span class="status-pill" id="connectionLabel">等待连接</span>
+          <span class="mode-pill" id="modeLabel">中央巡航</span>
+        </div>
+        <div class="status-card-body">
+          <p class="status-eyebrow" id="statusTitle">青橙桌宠待命</p>
+          <p class="status-copy" id="statusMessage">模型切换、连接反馈和运行态会在这里提示。</p>
+          <button class="status-action hidden" id="statusAction" type="button">立即处理</button>
+        </div>
+      </aside>
+
+      <div class="model-drawer hidden" id="modelDrawer" aria-label="模型库">
+        <div class="panel-header">
+          <p class="panel-title">模型库</p>
+          <p class="panel-subtitle">按 oh-my-live2d 原始目录标准接入</p>
+        </div>
+        <div class="model-drawer-list" id="modelDrawerList"></div>
+      </div>
+
+      <nav class="quick-menu" id="quickMenu" aria-label="青橙桌宠快捷菜单">
+        <button class="quick-item" data-action="toggle-model-drawer" type="button" title="打开模型库">
+          <span class="quick-icon">模</span>
+          <span class="quick-label">模型</span>
+        </button>
+        <button class="quick-item" data-action="cycle-character" type="button" title="切换到下一个模型">
+          <span class="quick-icon">切</span>
+          <span class="quick-label">切换</span>
+        </button>
+        <button class="quick-item" data-action="request-cheer" type="button" title="给我一句鼓励">
+          <span class="quick-icon">励</span>
+          <span class="quick-label">鼓励</span>
+        </button>
+        <button class="quick-item" data-action="sync-provider-overview" type="button" title="同步服务商摘要">
+          <span class="quick-icon">摘</span>
+          <span class="quick-label">摘要</span>
+        </button>
+        <button class="quick-item" data-action="toggle-details" type="button" title="打开详情面板">
+          <span class="quick-icon">诊</span>
+          <span class="quick-label">详情</span>
+        </button>
+        <button class="quick-item" data-action="provider-settings" type="button" title="打开设置">
+          <span class="quick-icon">设</span>
+          <span class="quick-label">设置</span>
+        </button>
+      </nav>
+
+      <div class="context-menu hidden" id="contextMenu" role="dialog" aria-label="青橙桌宠详情面板">
+        <section class="context-section" aria-label="Live2D 运行态">
+          <p class="context-section-title">Live2D 运行态</p>
+          <div class="context-static-list compact" id="live2dRuntimeSummary"></div>
+        </section>
+
         <section class="context-section" aria-label="Lime Companion 诊断">
           <p class="context-section-title">Lime Companion 诊断</p>
           <div class="context-static-list" id="diagnosticSummary"></div>
@@ -26,8 +78,8 @@
           <div class="context-static-list compact" id="providerOverviewList"></div>
         </section>
 
-        <section class="context-section" aria-label="切换外观">
-          <p class="context-section-title">切换外观</p>
+        <section class="context-section" aria-label="模型库">
+          <p class="context-section-title">模型库</p>
           <div class="context-action-list compact" id="characterList"></div>
         </section>
 
@@ -84,11 +136,6 @@
           />
         </button>
       </section>
-
-      <footer class="status-bar">
-        <span class="status-pill" id="connectionLabel">等待连接</span>
-        <span class="mode-pill" id="modeLabel">中央巡航</span>
-      </footer>
     </main>
   </body>
 </html>

@@ -4,1418 +4,26 @@
     {
       "id": "dewy-lime",
       "displayName": "雾隐青柠",
-      "switchBubble": "切换到青柠精灵形态",
-      "palettes": {
-        "idle": {
-          "shell": {
-            "red": 0.89,
-            "green": 0.95,
-            "blue": 0.86,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 0.97,
-            "green": 1.0,
-            "blue": 0.97,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.1,
-            "green": 0.3,
-            "blue": 0.18,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 0.77,
-            "green": 0.94,
-            "blue": 0.8,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.65,
-            "green": 0.85,
-            "blue": 0.75,
-            "alpha": 1
-          }
-        },
-        "walking": {
-          "shell": {
-            "red": 0.85,
-            "green": 0.92,
-            "blue": 0.82,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 0.95,
-            "green": 0.98,
-            "blue": 0.95,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.08,
-            "green": 0.28,
-            "blue": 0.16,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 0.72,
-            "green": 0.9,
-            "blue": 0.75,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.6,
-            "green": 0.8,
-            "blue": 0.7,
-            "alpha": 1
-          }
-        },
-        "thinking": {
-          "shell": {
-            "red": 0.8,
-            "green": 0.9,
-            "blue": 0.95,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 0.9,
-            "green": 0.95,
-            "blue": 0.98,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.15,
-            "green": 0.35,
-            "blue": 0.45,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 0.6,
-            "green": 0.85,
-            "blue": 0.95,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.75,
-            "green": 0.85,
-            "blue": 0.9,
-            "alpha": 1
-          }
-        },
-        "done": {
-          "shell": {
-            "red": 0.95,
-            "green": 0.98,
-            "blue": 0.85,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 0.98,
-            "green": 1.0,
-            "blue": 0.95,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.25,
-            "green": 0.45,
-            "blue": 0.15,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 0.85,
-            "green": 0.98,
-            "blue": 0.65,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.85,
-            "green": 0.95,
-            "blue": 0.75,
-            "alpha": 1
-          }
-        }
-      },
-      "motion": {
-        "walkSpeedMultiplier": 0.8,
-        "roamRadiusMultiplier": 0.9,
-        "bobAmplitudeMultiplier": 1.5,
-        "stretchMultiplier": 1.2,
-        "tailSwingMultiplier": 0.5,
-        "blinkMinFrames": 120,
-        "blinkMaxFrames": 300,
-        "ambientDelayMinSeconds": 15,
-        "ambientDelayMaxSeconds": 25
-      },
-      "dialogue": {
-        "connectedIdle": [
-          "我在角落静静陪着你",
-          "随时可以叫我"
-        ],
-        "disconnectedIdle": [
-          "暂时与 Lime 失联，但我还在",
-          "等信号的时候，我就在这里发光"
-        ],
-        "connectedWalking": [
-          "我在桌面边缘巡游一下",
-          "像露水一样滑过"
-        ],
-        "disconnectedWalking": [
-          "离线状态下散散步",
-          "继续守着这片屏幕"
-        ],
-        "thinking": [
-          "正在全神贯注处理中",
-          "想法正在脑海里冒泡"
-        ],
-        "done": [
-          "搞定了！感觉神清气爽",
-          "你看，任务完成啦"
-        ]
-      },
-      "accessories": {
-        "neck": "none",
-        "head": "crest",
-        "trail": "glow-dots",
-        "cheeks": "blush"
-      },
-      "geometry": {
-        "headWidth": 120,
-        "headHeight": 115,
-        "headCornerRadius": 40,
-        "bellyWidth": 65,
-        "bellyHeight": 65,
-        "bellyCornerRadius": 30,
-        "bellyOffsetY": 15,
-        "highlightWidth": 15,
-        "highlightHeight": 45,
-        "highlightOffsetX": -25,
-        "highlightOffsetY": -10,
-        "earWidth": 0,
-        "earHeight": 0,
-        "earSpread": 0,
-        "earOffsetY": 0,
-        "earTilt": 0,
-        "earInnerWidth": 0,
-        "earInnerHeight": 0,
-        "tailWidth": 50,
-        "tailHeight": 20,
-        "tailOffsetX": -35,
-        "tailOffsetY": 20,
-        "haloSize": 125,
-        "shadowWidth": 130,
-        "shadowHeight": 20,
-        "pawWidth": 0,
-        "pawHeight": 0,
-        "pawSpacing": 0,
-        "eyeWhiteWidth": 18,
-        "eyeWhiteHeight": 18,
-        "pupilWidth": 8,
-        "pupilHeight": 8,
-        "eyeSpacing": 28,
-        "eyeOffsetY": -10,
-        "blushSize": 14,
-        "blushSpacing": 38,
-        "blushOffsetY": 8,
-        "mouthWidth": 0.1,
-        "mouthHeight": 0.1,
-        "mouthOffsetY": 15,
-        "whiskerLength": 0,
-        "whiskerThickness": 0,
-        "whiskerSideOffset": 0,
-        "whiskerSpacing": 0,
-        "whiskerRowSpacing": 0,
-        "whiskerOffsetY": 0,
-        "badgeSize": 20,
-        "badgeOffsetX": 30,
-        "badgeOffsetY": -30,
-        "scarfWidth": 0,
-        "scarfHeight": 0,
-        "scarfOffsetY": 0,
-        "scarfTailWidth": 0,
-        "scarfTailHeight": 0,
-        "scarfTailOffsetX": 0,
-        "scarfTailOffsetY": 0,
-        "crestSize": 20,
-        "crestOffsetY": -45
-      },
-      "symbols": {
-        "menuBar": "leaf.fill",
-        "connectedStatus": "sparkles",
-        "disconnectedStatus": "wifi.slash",
-        "thinkingPrimary": "brain.head.profile",
-        "donePrimary": "sparkles",
-        "doneSecondary": "checkmark.circle.fill",
-        "crest": "sparkles"
-      }
+      "switchBubble": "切换到青橙守望形态"
     },
     {
-      "id": "lime-scout",
-      "displayName": "青柠巡游",
-      "switchBubble": "切换到青柠巡游形态",
-      "palettes": {
-        "idle": {
-          "shell": {
-            "red": 0.25,
-            "green": 0.63,
-            "blue": 0.89,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 0.84,
-            "green": 0.95,
-            "blue": 1.0,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.12,
-            "green": 0.29,
-            "blue": 0.44,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 0.53,
-            "green": 0.82,
-            "blue": 1.0,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.9,
-            "green": 0.67,
-            "blue": 0.78,
-            "alpha": 1
-          }
-        },
-        "walking": {
-          "shell": {
-            "red": 0.31,
-            "green": 0.72,
-            "blue": 0.55,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 0.9,
-            "green": 0.98,
-            "blue": 0.94,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.1,
-            "green": 0.34,
-            "blue": 0.24,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 0.57,
-            "green": 0.91,
-            "blue": 0.74,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.98,
-            "green": 0.72,
-            "blue": 0.74,
-            "alpha": 1
-          }
-        },
-        "thinking": {
-          "shell": {
-            "red": 0.98,
-            "green": 0.69,
-            "blue": 0.31,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 1.0,
-            "green": 0.94,
-            "blue": 0.79,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.54,
-            "green": 0.28,
-            "blue": 0.06,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 1.0,
-            "green": 0.82,
-            "blue": 0.54,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.98,
-            "green": 0.78,
-            "blue": 0.7,
-            "alpha": 1
-          }
-        },
-        "done": {
-          "shell": {
-            "red": 0.66,
-            "green": 0.48,
-            "blue": 0.91,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 0.95,
-            "green": 0.92,
-            "blue": 1.0,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.29,
-            "green": 0.13,
-            "blue": 0.54,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 0.83,
-            "green": 0.72,
-            "blue": 1.0,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.96,
-            "green": 0.75,
-            "blue": 0.82,
-            "alpha": 1
-          }
-        }
-      },
-      "motion": {
-        "walkSpeedMultiplier": 1,
-        "roamRadiusMultiplier": 1,
-        "bobAmplitudeMultiplier": 1,
-        "stretchMultiplier": 1,
-        "tailSwingMultiplier": 1,
-        "blinkMinFrames": 90,
-        "blinkMaxFrames": 220,
-        "ambientDelayMinSeconds": 11,
-        "ambientDelayMaxSeconds": 19
-      },
-      "dialogue": {
-        "connectedIdle": [
-          "我在这里帮你盯着 Lime",
-          "先在旁边待命，有动静我会冒泡"
-        ],
-        "disconnectedIdle": [
-          "我还在等 Lime 连上来",
-          "先陪你守着，等它上线"
-        ],
-        "connectedWalking": [
-          "我先去巡一圈桌面边缘",
-          "这边我先替你看着"
-        ],
-        "disconnectedWalking": [
-          "离线时我也会继续巡航",
-          "先慢慢逛着，等 Lime 回来"
-        ],
-        "thinking": [
-          "我先在旁边陪它想一会",
-          "有进展我会先提醒你"
-        ],
-        "done": [
-          "刚刚那件事已经完成啦",
-          "如果你愿意，我还能继续帮你叫出 Lime"
-        ]
-      },
-      "accessories": {
-        "neck": "scarf",
-        "head": "crest",
-        "trail": "glow-dots",
-        "cheeks": "blush"
-      },
-      "geometry": {
-        "headWidth": 114,
-        "headHeight": 110,
-        "headCornerRadius": 34,
-        "bellyWidth": 58,
-        "bellyHeight": 62,
-        "bellyCornerRadius": 26,
-        "bellyOffsetY": 16,
-        "highlightWidth": 22,
-        "highlightHeight": 56,
-        "highlightOffsetX": -24,
-        "highlightOffsetY": -6,
-        "earWidth": 28,
-        "earHeight": 46,
-        "earSpread": 42,
-        "earOffsetY": -60,
-        "earTilt": 18,
-        "earInnerWidth": 12,
-        "earInnerHeight": 22,
-        "tailWidth": 76,
-        "tailHeight": 22,
-        "tailOffsetX": -44,
-        "tailOffsetY": 18,
-        "haloSize": 118,
-        "shadowWidth": 142,
-        "shadowHeight": 22,
-        "pawWidth": 18,
-        "pawHeight": 46,
-        "pawSpacing": 34,
-        "eyeWhiteWidth": 14,
-        "eyeWhiteHeight": 16,
-        "pupilWidth": 6.5,
-        "pupilHeight": 9,
-        "eyeSpacing": 18,
-        "eyeOffsetY": -14,
-        "blushSize": 11,
-        "blushSpacing": 30,
-        "blushOffsetY": 4,
-        "mouthWidth": 28,
-        "mouthHeight": 14,
-        "mouthOffsetY": 20,
-        "whiskerLength": 22,
-        "whiskerThickness": 2.4,
-        "whiskerSideOffset": 10,
-        "whiskerSpacing": 46,
-        "whiskerRowSpacing": 8,
-        "whiskerOffsetY": 10,
-        "badgeSize": 20,
-        "badgeOffsetX": 30,
-        "badgeOffsetY": -30,
-        "scarfWidth": 74,
-        "scarfHeight": 16,
-        "scarfOffsetY": 34,
-        "scarfTailWidth": 20,
-        "scarfTailHeight": 24,
-        "scarfTailOffsetX": 28,
-        "scarfTailOffsetY": 42,
-        "crestSize": 14,
-        "crestOffsetY": -36
-      },
-      "symbols": {
-        "menuBar": "leaf.fill",
-        "connectedStatus": "bolt.fill",
-        "disconnectedStatus": "wifi.slash",
-        "thinkingPrimary": "brain.head.profile",
-        "donePrimary": "sparkles",
-        "doneSecondary": "checkmark.circle.fill",
-        "crest": "leaf.circle.fill"
-      }
-    },
-    {
-      "id": "sun-puff",
-      "displayName": "暖阳团子",
-      "switchBubble": "切换到暖阳团子形态",
-      "palettes": {
-        "idle": {
-          "shell": {
-            "red": 0.94,
-            "green": 0.73,
-            "blue": 0.43,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 1.0,
-            "green": 0.94,
-            "blue": 0.82,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.53,
-            "green": 0.31,
-            "blue": 0.14,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 1.0,
-            "green": 0.84,
-            "blue": 0.54,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.97,
-            "green": 0.71,
-            "blue": 0.62,
-            "alpha": 1
-          }
-        },
-        "walking": {
-          "shell": {
-            "red": 0.98,
-            "green": 0.62,
-            "blue": 0.32,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 1.0,
-            "green": 0.9,
-            "blue": 0.78,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.59,
-            "green": 0.26,
-            "blue": 0.09,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 1.0,
-            "green": 0.73,
-            "blue": 0.42,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.99,
-            "green": 0.74,
-            "blue": 0.68,
-            "alpha": 1
-          }
-        },
-        "thinking": {
-          "shell": {
-            "red": 0.89,
-            "green": 0.61,
-            "blue": 0.77,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 0.99,
-            "green": 0.9,
-            "blue": 0.95,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.43,
-            "green": 0.19,
-            "blue": 0.38,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 0.96,
-            "green": 0.78,
-            "blue": 0.93,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.98,
-            "green": 0.74,
-            "blue": 0.82,
-            "alpha": 1
-          }
-        },
-        "done": {
-          "shell": {
-            "red": 0.99,
-            "green": 0.8,
-            "blue": 0.39,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 1.0,
-            "green": 0.95,
-            "blue": 0.84,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.48,
-            "green": 0.24,
-            "blue": 0.1,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 1.0,
-            "green": 0.87,
-            "blue": 0.49,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.99,
-            "green": 0.76,
-            "blue": 0.66,
-            "alpha": 1
-          }
-        }
-      },
-      "motion": {
-        "walkSpeedMultiplier": 0.92,
-        "roamRadiusMultiplier": 0.74,
-        "bobAmplitudeMultiplier": 1.24,
-        "stretchMultiplier": 1.18,
-        "tailSwingMultiplier": 0.84,
-        "blinkMinFrames": 72,
-        "blinkMaxFrames": 158,
-        "ambientDelayMinSeconds": 9,
-        "ambientDelayMaxSeconds": 15
-      },
-      "dialogue": {
-        "connectedIdle": [
-          "我在这里晒着光等你发号施令",
-          "先团成一团陪你待机"
-        ],
-        "disconnectedIdle": [
-          "Lime 还没连上，我先暖场",
-          "先抱着一点亮光等它回来"
-        ],
-        "connectedWalking": [
-          "我去桌面上滚一小圈",
-          "暖阳团子出发巡逻啦"
-        ],
-        "disconnectedWalking": [
-          "先自己转转，顺便等 Lime 上线",
-          "我边走边替你把气氛撑住"
-        ],
-        "thinking": [
-          "它在想的时候，我会安静发光",
-          "先别急，我陪它把线头理顺"
-        ],
-        "done": [
-          "好耶，这一轮已经收尾了",
-          "完成啦，我先替你亮一下庆祝"
-        ]
-      },
-      "accessories": {
-        "neck": "bow",
-        "head": "flower",
-        "trail": "sun-motes",
-        "cheeks": "freckles"
-      },
-      "geometry": {
-        "headWidth": 122,
-        "headHeight": 102,
-        "headCornerRadius": 44,
-        "bellyWidth": 68,
-        "bellyHeight": 54,
-        "bellyCornerRadius": 28,
-        "bellyOffsetY": 18,
-        "highlightWidth": 24,
-        "highlightHeight": 44,
-        "highlightOffsetX": -26,
-        "highlightOffsetY": -10,
-        "earWidth": 22,
-        "earHeight": 34,
-        "earSpread": 48,
-        "earOffsetY": -52,
-        "earTilt": 10,
-        "earInnerWidth": 10,
-        "earInnerHeight": 16,
-        "tailWidth": 62,
-        "tailHeight": 24,
-        "tailOffsetX": -40,
-        "tailOffsetY": 24,
-        "haloSize": 124,
-        "shadowWidth": 150,
-        "shadowHeight": 24,
-        "pawWidth": 20,
-        "pawHeight": 40,
-        "pawSpacing": 38,
-        "eyeWhiteWidth": 16,
-        "eyeWhiteHeight": 15,
-        "pupilWidth": 7,
-        "pupilHeight": 8,
-        "eyeSpacing": 22,
-        "eyeOffsetY": -12,
-        "blushSize": 13,
-        "blushSpacing": 34,
-        "blushOffsetY": 6,
-        "mouthWidth": 30,
-        "mouthHeight": 14,
-        "mouthOffsetY": 22,
-        "whiskerLength": 18,
-        "whiskerThickness": 2.8,
-        "whiskerSideOffset": 10,
-        "whiskerSpacing": 52,
-        "whiskerRowSpacing": 10,
-        "whiskerOffsetY": 12,
-        "badgeSize": 22,
-        "badgeOffsetX": 34,
-        "badgeOffsetY": -28,
-        "scarfWidth": 82,
-        "scarfHeight": 18,
-        "scarfOffsetY": 32,
-        "scarfTailWidth": 22,
-        "scarfTailHeight": 26,
-        "scarfTailOffsetX": 26,
-        "scarfTailOffsetY": 44,
-        "crestSize": 15,
-        "crestOffsetY": -34
-      },
-      "symbols": {
-        "menuBar": "sun.max.fill",
-        "connectedStatus": "sun.max.fill",
-        "disconnectedStatus": "wifi.slash",
-        "thinkingPrimary": "lightbulb.max.fill",
-        "donePrimary": "star.fill",
-        "doneSecondary": "checkmark.seal.fill",
-        "crest": "heart.circle.fill"
-      }
-    },
-    {
-      "id": "iris-night",
-      "displayName": "夜虹灵狐",
-      "switchBubble": "切换到夜虹灵狐形态",
-      "palettes": {
-        "idle": {
-          "shell": {
-            "red": 0.39,
-            "green": 0.45,
-            "blue": 0.84,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 0.88,
-            "green": 0.91,
-            "blue": 1.0,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.16,
-            "green": 0.18,
-            "blue": 0.42,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 0.66,
-            "green": 0.76,
-            "blue": 1.0,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.84,
-            "green": 0.71,
-            "blue": 0.94,
-            "alpha": 1
-          }
-        },
-        "walking": {
-          "shell": {
-            "red": 0.44,
-            "green": 0.34,
-            "blue": 0.87,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 0.93,
-            "green": 0.9,
-            "blue": 1.0,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.2,
-            "green": 0.11,
-            "blue": 0.48,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 0.77,
-            "green": 0.67,
-            "blue": 1.0,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.92,
-            "green": 0.74,
-            "blue": 0.94,
-            "alpha": 1
-          }
-        },
-        "thinking": {
-          "shell": {
-            "red": 0.27,
-            "green": 0.61,
-            "blue": 0.91,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 0.86,
-            "green": 0.95,
-            "blue": 1.0,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.09,
-            "green": 0.26,
-            "blue": 0.5,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 0.55,
-            "green": 0.84,
-            "blue": 1.0,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.78,
-            "green": 0.86,
-            "blue": 0.98,
-            "alpha": 1
-          }
-        },
-        "done": {
-          "shell": {
-            "red": 0.73,
-            "green": 0.43,
-            "blue": 0.97,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 0.96,
-            "green": 0.9,
-            "blue": 1.0,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.32,
-            "green": 0.13,
-            "blue": 0.56,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 0.88,
-            "green": 0.72,
-            "blue": 1.0,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.96,
-            "green": 0.76,
-            "blue": 0.92,
-            "alpha": 1
-          }
-        }
-      },
-      "motion": {
-        "walkSpeedMultiplier": 1.14,
-        "roamRadiusMultiplier": 1.28,
-        "bobAmplitudeMultiplier": 0.92,
-        "stretchMultiplier": 0.9,
-        "tailSwingMultiplier": 1.3,
-        "blinkMinFrames": 108,
-        "blinkMaxFrames": 248,
-        "ambientDelayMinSeconds": 13,
-        "ambientDelayMaxSeconds": 22
-      },
-      "dialogue": {
-        "connectedIdle": [
-          "夜色很好，我先替你守着这片桌面",
-          "我会安静待着，等 Lime 下一次唤我"
-        ],
-        "disconnectedIdle": [
-          "连接还没回来，我先在暗处守望",
-          "先别担心，我会继续盯着这里"
-        ],
-        "connectedWalking": [
-          "我沿着边缘巡过去看看",
-          "夜虹灵狐先替你走一圈"
-        ],
-        "disconnectedWalking": [
-          "离线时我会把脚步放轻一点",
-          "我先巡着，等 Lime 再次亮起"
-        ],
-        "thinking": [
-          "它在沉思时，我会把周围安静下来",
-          "先让想法落地，我替你看着入口"
-        ],
-        "done": [
-          "事情已经办妥，我会先亮一下尾光",
-          "这一段结束了，接下来还可以继续叫我"
-        ]
-      },
-      "accessories": {
-        "neck": "collar",
-        "head": "crown",
-        "trail": "sparkles",
-        "cheeks": "stardust"
-      },
-      "geometry": {
-        "headWidth": 110,
-        "headHeight": 114,
-        "headCornerRadius": 32,
-        "bellyWidth": 54,
-        "bellyHeight": 58,
-        "bellyCornerRadius": 24,
-        "bellyOffsetY": 18,
-        "highlightWidth": 18,
-        "highlightHeight": 54,
-        "highlightOffsetX": -22,
-        "highlightOffsetY": -10,
-        "earWidth": 24,
-        "earHeight": 54,
-        "earSpread": 40,
-        "earOffsetY": -66,
-        "earTilt": 22,
-        "earInnerWidth": 8,
-        "earInnerHeight": 24,
-        "tailWidth": 88,
-        "tailHeight": 18,
-        "tailOffsetX": -46,
-        "tailOffsetY": 12,
-        "haloSize": 120,
-        "shadowWidth": 138,
-        "shadowHeight": 20,
-        "pawWidth": 16,
-        "pawHeight": 48,
-        "pawSpacing": 34,
-        "eyeWhiteWidth": 13,
-        "eyeWhiteHeight": 17,
-        "pupilWidth": 5.8,
-        "pupilHeight": 9.5,
-        "eyeSpacing": 20,
-        "eyeOffsetY": -18,
-        "blushSize": 10,
-        "blushSpacing": 28,
-        "blushOffsetY": 2,
-        "mouthWidth": 26,
-        "mouthHeight": 13,
-        "mouthOffsetY": 18,
-        "whiskerLength": 24,
-        "whiskerThickness": 2.0,
-        "whiskerSideOffset": 12,
-        "whiskerSpacing": 48,
-        "whiskerRowSpacing": 7,
-        "whiskerOffsetY": 8,
-        "badgeSize": 18,
-        "badgeOffsetX": 28,
-        "badgeOffsetY": -34,
-        "scarfWidth": 70,
-        "scarfHeight": 14,
-        "scarfOffsetY": 36,
-        "scarfTailWidth": 18,
-        "scarfTailHeight": 24,
-        "scarfTailOffsetX": 24,
-        "scarfTailOffsetY": 44,
-        "crestSize": 13,
-        "crestOffsetY": -40
-      },
-      "symbols": {
-        "menuBar": "sparkles",
-        "connectedStatus": "moon.stars.fill",
-        "disconnectedStatus": "wifi.slash",
-        "thinkingPrimary": "moonphase.waning.gibbous.inverse",
-        "donePrimary": "sparkles.rectangle.stack.fill",
-        "doneSecondary": "checkmark.circle.fill",
-        "crest": "sparkle"
-      }
-    },
-    {
-      "id": "mao-live2d",
-      "displayName": "茉莉 Live2D",
-      "switchBubble": "切换到 Live2D 茉莉形态",
+      "id": "senko-normals",
+      "displayName": "仙狐 Senko",
+      "switchBubble": "切换到 仙狐 Senko 模型",
       "renderer": "live2d",
       "live2d": {
-        "modelPath": "live2d-models/mao_pro/runtime/mao_pro.model3.json",
-        "scale": 1.12,
+        "modelPath": "live2d-models/oml2d/Senko_Normals/senko.model3.json",
+        "modelPaths": null,
+        "layoutMode": "contain",
+        "scale": 1.04,
         "offsetX": 0,
-        "offsetY": -6,
-        "emotionMap": {
-          "neutral": 0,
-          "anger": 2,
-          "disgust": 2,
-          "fear": 1,
-          "joy": 3,
-          "smirk": 3,
-          "sadness": 1,
-          "surprise": 3
-        },
-        "emotionActions": {
-          "neutral": {
-            "expression": "neutral",
-            "motion": {
-              "group": "Idle",
-              "index": 0
-            }
-          },
-          "joy": {
-            "expression": "joy",
-            "motion": {
-              "group": "",
-              "index": 3
-            }
-          },
-          "smirk": {
-            "expression": "smirk",
-            "motion": {
-              "group": "",
-              "index": 2
-            }
-          },
-          "surprise": {
-            "expression": "surprise",
-            "motion": {
-              "group": "",
-              "index": 4
-            }
-          },
-          "sadness": {
-            "expression": "sadness",
-            "motion": {
-              "group": "",
-              "index": 1
-            }
-          },
-          "fear": {
-            "expression": "fear",
-            "motion": {
-              "group": "",
-              "index": 1
-            }
-          },
-          "anger": {
-            "expression": "anger",
-            "motion": {
-              "group": "",
-              "index": 5
-            }
-          },
-          "disgust": {
-            "expression": "disgust",
-            "motion": {
-              "group": "",
-              "index": 5
-            }
-          }
-        },
-        "stateActions": {
-          "idle": {
-            "expression": "neutral",
-            "motion": {
-              "group": "Idle",
-              "index": 0
-            }
-          },
-          "walking": {
-            "expression": "joy",
-            "motion": {
-              "group": "",
-              "index": 0
-            }
-          },
-          "thinking": {
-            "expression": "surprise",
-            "motion": {
-              "group": "",
-              "index": 1
-            }
-          },
-          "done": {
-            "expression": "joy",
-            "motion": {
-              "group": "",
-              "index": 3
-            }
-          }
-        },
-        "tapActions": {
-          "single": {
-            "group": "",
-            "index": 2
-          },
-          "double": {
-            "group": "",
-            "index": 4
-          },
-          "triple": {
-            "group": "",
-            "index": 5
-          }
-        }
-      },
-      "palettes": {
-        "idle": {
-          "shell": {
-            "red": 0.95,
-            "green": 0.88,
-            "blue": 0.9,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 0.99,
-            "green": 0.96,
-            "blue": 0.97,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.42,
-            "green": 0.22,
-            "blue": 0.31,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 0.97,
-            "green": 0.78,
-            "blue": 0.86,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.92,
-            "green": 0.68,
-            "blue": 0.77,
-            "alpha": 1
-          }
-        },
-        "walking": {
-          "shell": {
-            "red": 0.94,
-            "green": 0.84,
-            "blue": 0.89,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 0.98,
-            "green": 0.94,
-            "blue": 0.96,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.48,
-            "green": 0.24,
-            "blue": 0.34,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 0.98,
-            "green": 0.74,
-            "blue": 0.84,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.95,
-            "green": 0.69,
-            "blue": 0.78,
-            "alpha": 1
-          }
-        },
-        "thinking": {
-          "shell": {
-            "red": 0.89,
-            "green": 0.9,
-            "blue": 0.98,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 0.95,
-            "green": 0.96,
-            "blue": 1.0,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.29,
-            "green": 0.37,
-            "blue": 0.59,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 0.71,
-            "green": 0.8,
-            "blue": 0.98,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.78,
-            "green": 0.75,
-            "blue": 0.95,
-            "alpha": 1
-          }
-        },
-        "done": {
-          "shell": {
-            "red": 0.99,
-            "green": 0.92,
-            "blue": 0.84,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 1.0,
-            "green": 0.97,
-            "blue": 0.91,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.53,
-            "green": 0.37,
-            "blue": 0.13,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 1.0,
-            "green": 0.88,
-            "blue": 0.65,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.96,
-            "green": 0.8,
-            "blue": 0.7,
-            "alpha": 1
-          }
-        }
-      },
-      "motion": {
-        "walkSpeedMultiplier": 0.96,
-        "roamRadiusMultiplier": 1.0,
-        "bobAmplitudeMultiplier": 1.0,
-        "stretchMultiplier": 1.0,
-        "tailSwingMultiplier": 0.8,
-        "blinkMinFrames": 110,
-        "blinkMaxFrames": 240,
-        "ambientDelayMinSeconds": 14,
-        "ambientDelayMaxSeconds": 24
-      },
-      "dialogue": {
-        "connectedIdle": [
-          "我已经切到 Live2D 形态啦",
-          "现在会用表情和动作陪着你"
-        ],
-        "disconnectedIdle": [
-          "连接还没回来，我先保持在台前",
-          "等 Lime 连上后，我会继续动起来"
-        ],
-        "connectedWalking": [
-          "我会跟着状态切动作",
-          "现在这边也能用 Live2D 陪你了"
-        ],
-        "disconnectedWalking": [
-          "离线时先轻轻待命",
-          "连上以后我会继续响应动作"
-        ],
-        "thinking": [
-          "我先用表情陪它思考一会",
-          "有新进展时我会马上换个状态"
-        ],
-        "done": [
-          "这一段已经完成，我来庆祝一下",
-          "如果你愿意，也可以再点我继续"
-        ]
-      },
-      "accessories": {
-        "neck": "none",
-        "head": "flower",
-        "trail": "sparkles",
-        "cheeks": "blush"
-      },
-      "geometry": {
-        "headWidth": 120,
-        "headHeight": 115,
-        "headCornerRadius": 40,
-        "bellyWidth": 65,
-        "bellyHeight": 65,
-        "bellyCornerRadius": 30,
-        "bellyOffsetY": 15,
-        "highlightWidth": 15,
-        "highlightHeight": 45,
-        "highlightOffsetX": -25,
-        "highlightOffsetY": -10,
-        "earWidth": 0,
-        "earHeight": 0,
-        "earSpread": 0,
-        "earOffsetY": 0,
-        "earTilt": 0,
-        "earInnerWidth": 0,
-        "earInnerHeight": 0,
-        "tailWidth": 50,
-        "tailHeight": 20,
-        "tailOffsetX": -35,
-        "tailOffsetY": 20,
-        "haloSize": 125,
-        "shadowWidth": 130,
-        "shadowHeight": 20,
-        "pawWidth": 0,
-        "pawHeight": 0,
-        "pawSpacing": 0,
-        "eyeWhiteWidth": 18,
-        "eyeWhiteHeight": 18,
-        "pupilWidth": 8,
-        "pupilHeight": 8,
-        "eyeSpacing": 28,
-        "eyeOffsetY": -10,
-        "blushSize": 14,
-        "blushSpacing": 38,
-        "blushOffsetY": 8,
-        "mouthWidth": 0.1,
-        "mouthHeight": 0.1,
-        "mouthOffsetY": 15,
-        "whiskerLength": 0,
-        "whiskerThickness": 0,
-        "whiskerSideOffset": 0,
-        "whiskerSpacing": 0,
-        "whiskerRowSpacing": 0,
-        "whiskerOffsetY": 0,
-        "badgeSize": 20,
-        "badgeOffsetX": 30,
-        "badgeOffsetY": -30,
-        "scarfWidth": 0,
-        "scarfHeight": 0,
-        "scarfOffsetY": 0,
-        "scarfTailWidth": 0,
-        "scarfTailHeight": 0,
-        "scarfTailOffsetX": 0,
-        "scarfTailOffsetY": 0,
-        "crestSize": 20,
-        "crestOffsetY": -45
-      },
-      "symbols": {
-        "menuBar": "person.crop.circle.fill",
-        "connectedStatus": "sparkles",
-        "disconnectedStatus": "wifi.slash",
-        "thinkingPrimary": "brain.head.profile",
-        "donePrimary": "sparkles",
-        "doneSecondary": "checkmark.circle.fill",
-        "crest": "sparkles"
-      }
-    },
-    {
-      "id": "shizuku-live2d",
-      "displayName": "雫 Live2D",
-      "switchBubble": "切换到 Live2D 雫形态",
-      "renderer": "live2d",
-      "live2d": {
-        "modelPath": "live2d-models/shizuku/runtime/shizuku.model3.json",
-        "scale": 1.0,
-        "offsetX": 0,
-        "offsetY": -4,
+        "offsetY": 0,
+        "positionX": null,
+        "positionY": null,
+        "anchorX": null,
+        "anchorY": null,
+        "stageStyle": null,
         "emotionMap": {},
-        "emotionActions": {
-          "neutral": {
-            "motion": {
-              "group": "Idle",
-              "index": 0
-            }
-          },
-          "joy": {
-            "motion": {
-              "group": "Tap",
-              "index": 0
-            }
-          },
-          "smirk": {
-            "motion": {
-              "group": "Tap",
-              "index": 0
-            }
-          },
-          "surprise": {
-            "motion": {
-              "group": "FlickUp",
-              "index": 0
-            }
-          },
-          "fear": {
-            "motion": {
-              "group": "FlickUp",
-              "index": 0
-            }
-          },
-          "sadness": {
-            "motion": {
-              "group": "FlickUp",
-              "index": 0
-            }
-          },
-          "anger": {
-            "motion": {
-              "group": "Flick3",
-              "index": 0
-            }
-          },
-          "disgust": {
-            "motion": {
-              "group": "Flick3",
-              "index": 0
-            }
-          }
-        },
         "stateActions": {
           "idle": {
             "motion": {
@@ -1425,19 +33,19 @@
           },
           "walking": {
             "motion": {
-              "group": "Tap",
+              "group": "Idle",
               "index": 0
             }
           },
           "thinking": {
             "motion": {
-              "group": "FlickUp",
+              "group": "Idle",
               "index": 0
             }
           },
           "done": {
             "motion": {
-              "group": "Flick3",
+              "group": "Idle",
               "index": 0
             }
           }
@@ -1448,256 +56,876 @@
             "index": 0
           },
           "double": {
-            "group": "FlickUp",
+            "group": "Taphead",
+            "index": 1
+          },
+          "triple": {
+            "group": "Tap",
+            "index": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "shizuku-classic",
+      "displayName": "雫 Classic",
+      "switchBubble": "切换到 雫 Classic 模型",
+      "renderer": "live2d",
+      "live2d": {
+        "modelPath": "live2d-models/oml2d/shizuku/shizuku.model.json",
+        "modelPaths": [
+          "live2d-models/oml2d/shizuku/shizuku.model.json",
+          "live2d-models/oml2d/shizuku_pajama/index.json"
+        ],
+        "layoutMode": "contain",
+        "scale": 1.06,
+        "offsetX": 0,
+        "offsetY": 6,
+        "positionX": null,
+        "positionY": null,
+        "anchorX": null,
+        "anchorY": null,
+        "stageStyle": null,
+        "emotionMap": {
+          "neutral": 0,
+          "joy": 1,
+          "smirk": 2,
+          "surprise": 3,
+          "sadness": 3
+        },
+        "stateActions": {
+          "idle": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "walking": {
+            "motion": {
+              "group": "idle",
+              "index": 1
+            }
+          },
+          "thinking": {
+            "motion": {
+              "group": "flick_head",
+              "index": 2
+            }
+          },
+          "done": {
+            "motion": {
+              "group": "idle",
+              "index": 2
+            }
+          }
+        },
+        "tapActions": {
+          "single": {
+            "group": "tap_body",
+            "index": 0
+          },
+          "double": {
+            "group": "flick_head",
+            "index": 1
+          },
+          "triple": {
+            "group": "tap_body",
+            "index": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "hibiki-stage",
+      "displayName": "响 Hibiki",
+      "switchBubble": "切换到 响 Hibiki 模型",
+      "renderer": "live2d",
+      "live2d": {
+        "modelPath": "live2d-models/oml2d/hibiki/hibiki.model.json",
+        "modelPaths": null,
+        "layoutMode": "contain",
+        "scale": 0.94,
+        "offsetX": 0,
+        "offsetY": 0,
+        "positionX": null,
+        "positionY": null,
+        "anchorX": null,
+        "anchorY": null,
+        "stageStyle": null,
+        "emotionMap": {
+          "neutral": 0,
+          "joy": 1,
+          "surprise": 2,
+          "sadness": 3,
+          "smirk": 4,
+          "anger": 5
+        },
+        "stateActions": {
+          "idle": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "walking": {
+            "motion": {
+              "group": "idle",
+              "index": 1
+            }
+          },
+          "thinking": {
+            "motion": {
+              "group": "idle",
+              "index": 2
+            }
+          },
+          "done": {
+            "motion": {
+              "group": "idle",
+              "index": 3
+            }
+          }
+        },
+        "tapActions": {
+          "single": {
+            "group": "null",
+            "index": 0
+          },
+          "double": {
+            "group": "null",
+            "index": 1
+          },
+          "triple": {
+            "group": "null",
+            "index": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "haruto-garden",
+      "displayName": "遥 Haruto",
+      "switchBubble": "切换到 遥 Haruto 模型",
+      "renderer": "live2d",
+      "live2d": {
+        "modelPath": "live2d-models/oml2d/haruto/haruto.model.json",
+        "modelPaths": null,
+        "layoutMode": "contain",
+        "scale": 0.94,
+        "offsetX": 0,
+        "offsetY": 0,
+        "positionX": null,
+        "positionY": null,
+        "anchorX": null,
+        "anchorY": null,
+        "stageStyle": null,
+        "emotionMap": {},
+        "stateActions": {
+          "idle": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "walking": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "thinking": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "done": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          }
+        },
+        "tapActions": {
+          "single": null,
+          "double": null,
+          "triple": null
+        }
+      }
+    },
+    {
+      "id": "hijiki-black",
+      "displayName": "黑猫 Hijiki",
+      "switchBubble": "切换到 黑猫 Hijiki 模型",
+      "renderer": "live2d",
+      "live2d": {
+        "modelPath": "live2d-models/oml2d/cat-black/model.json",
+        "modelPaths": null,
+        "layoutMode": "contain",
+        "scale": 0.94,
+        "offsetX": 0,
+        "offsetY": 8,
+        "positionX": null,
+        "positionY": null,
+        "anchorX": null,
+        "anchorY": null,
+        "stageStyle": null,
+        "emotionMap": {},
+        "stateActions": {
+          "idle": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "walking": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "thinking": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "done": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          }
+        },
+        "tapActions": {
+          "single": null,
+          "double": null,
+          "triple": null
+        }
+      }
+    },
+    {
+      "id": "tororo-white",
+      "displayName": "白猫 Tororo",
+      "switchBubble": "切换到 白猫 Tororo 模型",
+      "renderer": "live2d",
+      "live2d": {
+        "modelPath": "live2d-models/oml2d/cat-white/model.json",
+        "modelPaths": null,
+        "layoutMode": "contain",
+        "scale": 0.94,
+        "offsetX": 0,
+        "offsetY": 8,
+        "positionX": null,
+        "positionY": null,
+        "anchorX": null,
+        "anchorY": null,
+        "stageStyle": null,
+        "emotionMap": {},
+        "stateActions": {
+          "idle": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "walking": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "thinking": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "done": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          }
+        },
+        "tapActions": {
+          "single": null,
+          "double": null,
+          "triple": null
+        }
+      }
+    },
+    {
+      "id": "hk416-normal",
+      "displayName": "HK416 常态",
+      "switchBubble": "切换到 HK416 常态 模型",
+      "renderer": "live2d",
+      "live2d": {
+        "modelPath": "live2d-models/oml2d/HK416-1-normal/model.json",
+        "modelPaths": [
+          "live2d-models/oml2d/HK416-1-normal/model.json",
+          "live2d-models/oml2d/HK416-2-normal/model.json",
+          "live2d-models/oml2d/HK416-2-destroy/model.json"
+        ],
+        "layoutMode": "contain",
+        "scale": 0.94,
+        "offsetX": 0,
+        "offsetY": 0,
+        "positionX": null,
+        "positionY": null,
+        "anchorX": null,
+        "anchorY": null,
+        "stageStyle": null,
+        "emotionMap": {},
+        "stateActions": {
+          "idle": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "walking": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "thinking": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "done": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          }
+        },
+        "tapActions": {
+          "single": null,
+          "double": null,
+          "triple": null
+        }
+      }
+    },
+    {
+      "id": "hk416-destroy",
+      "displayName": "HK416 破损",
+      "switchBubble": "切换到 HK416 破损 模型",
+      "renderer": "live2d",
+      "live2d": {
+        "modelPath": "live2d-models/oml2d/HK416-2-destroy/model.json",
+        "modelPaths": null,
+        "layoutMode": "contain",
+        "scale": 0.94,
+        "offsetX": 0,
+        "offsetY": 0,
+        "positionX": null,
+        "positionY": null,
+        "anchorX": null,
+        "anchorY": null,
+        "stageStyle": null,
+        "emotionMap": {},
+        "stateActions": {
+          "idle": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "walking": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "thinking": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "done": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          }
+        },
+        "tapActions": {
+          "single": null,
+          "double": null,
+          "triple": null
+        }
+      }
+    },
+    {
+      "id": "kar98k-guard",
+      "displayName": "Kar98k 守望",
+      "switchBubble": "切换到 Kar98k 守望 模型",
+      "renderer": "live2d",
+      "live2d": {
+        "modelPath": "live2d-models/oml2d/Kar98k-normal/model.json",
+        "modelPaths": null,
+        "layoutMode": "contain",
+        "scale": 0.94,
+        "offsetX": 0,
+        "offsetY": 0,
+        "positionX": null,
+        "positionY": null,
+        "anchorX": null,
+        "anchorY": null,
+        "stageStyle": null,
+        "emotionMap": {},
+        "stateActions": {
+          "idle": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "walking": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "thinking": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "done": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          }
+        },
+        "tapActions": {
+          "single": null,
+          "double": null,
+          "triple": null
+        }
+      }
+    },
+    {
+      "id": "pio-workshop",
+      "displayName": "Pio 工房",
+      "switchBubble": "切换到 Pio 工房 模型",
+      "renderer": "live2d",
+      "live2d": {
+        "modelPath": "live2d-models/oml2d/Pio/model.json",
+        "modelPaths": [
+          "live2d-models/oml2d/Pio/model.json",
+          "live2d-models/oml2d/potion-Maker-Pio/index.json"
+        ],
+        "layoutMode": "contain",
+        "scale": 0.95,
+        "offsetX": 0,
+        "offsetY": -1,
+        "positionX": null,
+        "positionY": null,
+        "anchorX": null,
+        "anchorY": null,
+        "stageStyle": null,
+        "emotionMap": {},
+        "stateActions": {
+          "idle": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "walking": {
+            "motion": {
+              "group": "idle",
+              "index": 1
+            }
+          },
+          "thinking": {
+            "motion": {
+              "group": "idle",
+              "index": 2
+            }
+          },
+          "done": {
+            "motion": {
+              "group": "idle",
+              "index": 3
+            }
+          }
+        },
+        "tapActions": {
+          "single": null,
+          "double": null,
+          "triple": null
+        }
+      }
+    },
+    {
+      "id": "koharu-dawn",
+      "displayName": "Koharu 晨光",
+      "switchBubble": "切换到 Koharu 晨光 模型",
+      "renderer": "live2d",
+      "live2d": {
+        "modelPath": "live2d-models/oml2d/koharu/model.json",
+        "modelPaths": null,
+        "layoutMode": "contain",
+        "scale": 0.95,
+        "offsetX": 0,
+        "offsetY": -1,
+        "positionX": null,
+        "positionY": null,
+        "anchorX": null,
+        "anchorY": null,
+        "stageStyle": null,
+        "emotionMap": {},
+        "stateActions": {
+          "idle": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "walking": {
+            "motion": {
+              "group": "idle",
+              "index": 1
+            }
+          },
+          "thinking": {
+            "motion": {
+              "group": "flick_head",
+              "index": 2
+            }
+          },
+          "done": {
+            "motion": {
+              "group": "idle",
+              "index": 3
+            }
+          }
+        },
+        "tapActions": {
+          "single": {
+            "group": "tap_body",
+            "index": 0
+          },
+          "double": {
+            "group": "flick_head",
+            "index": 1
+          },
+          "triple": {
+            "group": "tap_body",
+            "index": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "mai-orbit",
+      "displayName": "Mai Orbit",
+      "switchBubble": "切换到 Mai Orbit 模型",
+      "renderer": "live2d",
+      "live2d": {
+        "modelPath": "live2d-models/oml2d/mai/model.json",
+        "modelPaths": null,
+        "layoutMode": "contain",
+        "scale": 1.03,
+        "offsetX": 0,
+        "offsetY": -2,
+        "positionX": null,
+        "positionY": null,
+        "anchorX": null,
+        "anchorY": null,
+        "stageStyle": null,
+        "emotionMap": {},
+        "stateActions": {
+          "idle": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "walking": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "thinking": {
+            "motion": {
+              "group": "shake",
+              "index": 2
+            }
+          },
+          "done": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          }
+        },
+        "tapActions": {
+          "single": {
+            "group": "tap_body",
+            "index": 0
+          },
+          "double": {
+            "group": "tap_body",
+            "index": 1
+          },
+          "triple": {
+            "group": "tap_body",
+            "index": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "murakumo-mist",
+      "displayName": "Murakumo",
+      "switchBubble": "切换到 Murakumo 模型",
+      "renderer": "live2d",
+      "live2d": {
+        "modelPath": "live2d-models/oml2d/murakumo/model.json",
+        "modelPaths": null,
+        "layoutMode": "contain",
+        "scale": 1.06,
+        "offsetX": 0,
+        "offsetY": 0,
+        "positionX": null,
+        "positionY": null,
+        "anchorX": null,
+        "anchorY": null,
+        "stageStyle": null,
+        "emotionMap": {
+          "neutral": 0,
+          "joy": 1,
+          "surprise": 2,
+          "sadness": 3
+        },
+        "stateActions": {
+          "idle": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "walking": {
+            "motion": {
+              "group": "idle",
+              "index": 1
+            }
+          },
+          "thinking": {
+            "motion": {
+              "group": "flick_head",
+              "index": 1
+            }
+          },
+          "done": {
+            "motion": {
+              "group": "idle",
+              "index": 2
+            }
+          }
+        },
+        "tapActions": {
+          "single": {
+            "group": "tap_body",
+            "index": 0
+          },
+          "double": {
+            "group": "flick_head",
+            "index": 1
+          },
+          "triple": {
+            "group": "tap_body",
+            "index": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "platelet-mini",
+      "displayName": "Platelet Mini",
+      "switchBubble": "切换到 Platelet Mini 模型",
+      "renderer": "live2d",
+      "live2d": {
+        "modelPath": "live2d-models/oml2d/platelet/model.json",
+        "modelPaths": [
+          "live2d-models/oml2d/platelet/model.json",
+          "live2d-models/oml2d/platelet_2/model.json"
+        ],
+        "layoutMode": "contain",
+        "scale": 1,
+        "offsetX": 0,
+        "offsetY": -1,
+        "positionX": null,
+        "positionY": null,
+        "anchorX": null,
+        "anchorY": null,
+        "stageStyle": null,
+        "emotionMap": {},
+        "stateActions": {
+          "idle": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "walking": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "thinking": {
+            "motion": {
+              "group": "flick_head",
+              "index": 0
+            }
+          },
+          "done": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          }
+        },
+        "tapActions": {
+          "single": {
+            "group": "tap_body",
+            "index": 0
+          },
+          "double": {
+            "group": "flick_head",
             "index": 0
           },
           "triple": {
-            "group": "Flick3",
+            "group": "tap_body",
             "index": 0
           }
         }
-      },
-      "palettes": {
-        "idle": {
-          "shell": {
-            "red": 0.83,
-            "green": 0.89,
-            "blue": 0.99,
-            "alpha": 1
+      }
+    },
+    {
+      "id": "rem-dream",
+      "displayName": "Rem Dream",
+      "switchBubble": "切换到 Rem Dream 模型",
+      "renderer": "live2d",
+      "live2d": {
+        "modelPath": "live2d-models/oml2d/rem/model.json",
+        "modelPaths": [
+          "live2d-models/oml2d/rem/model.json",
+          "live2d-models/oml2d/rem_2/model.json"
+        ],
+        "layoutMode": "contain",
+        "scale": 0.95,
+        "offsetX": 0,
+        "offsetY": -1,
+        "positionX": null,
+        "positionY": null,
+        "anchorX": null,
+        "anchorY": null,
+        "stageStyle": null,
+        "emotionMap": {},
+        "stateActions": {
+          "idle": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
           },
-          "belly": {
-            "red": 0.95,
-            "green": 0.97,
-            "blue": 1.0,
-            "alpha": 1
+          "walking": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
           },
-          "accent": {
-            "red": 0.25,
-            "green": 0.36,
-            "blue": 0.63,
-            "alpha": 1
+          "thinking": {
+            "motion": {
+              "group": "talk",
+              "index": 2
+            }
           },
-          "glow": {
-            "red": 0.64,
-            "green": 0.78,
-            "blue": 0.99,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.76,
-            "green": 0.83,
-            "blue": 0.97,
-            "alpha": 1
+          "done": {
+            "motion": {
+              "group": "talk",
+              "index": 3
+            }
           }
         },
-        "walking": {
-          "shell": {
-            "red": 0.78,
-            "green": 0.86,
-            "blue": 0.99,
-            "alpha": 1
+        "tapActions": {
+          "single": {
+            "group": "tap_body",
+            "index": 0
           },
-          "belly": {
-            "red": 0.92,
-            "green": 0.96,
-            "blue": 1.0,
-            "alpha": 1
+          "double": {
+            "group": "flick_head",
+            "index": 1
           },
-          "accent": {
-            "red": 0.29,
-            "green": 0.41,
-            "blue": 0.7,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 0.58,
-            "green": 0.77,
-            "blue": 1.0,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.73,
-            "green": 0.82,
-            "blue": 0.98,
-            "alpha": 1
-          }
-        },
-        "thinking": {
-          "shell": {
-            "red": 0.84,
-            "green": 0.83,
-            "blue": 0.99,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 0.95,
-            "green": 0.94,
-            "blue": 1.0,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.38,
-            "green": 0.31,
-            "blue": 0.67,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 0.76,
-            "green": 0.73,
-            "blue": 1.0,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.81,
-            "green": 0.76,
-            "blue": 0.98,
-            "alpha": 1
-          }
-        },
-        "done": {
-          "shell": {
-            "red": 0.91,
-            "green": 0.91,
-            "blue": 1.0,
-            "alpha": 1
-          },
-          "belly": {
-            "red": 0.98,
-            "green": 0.98,
-            "blue": 1.0,
-            "alpha": 1
-          },
-          "accent": {
-            "red": 0.46,
-            "green": 0.49,
-            "blue": 0.8,
-            "alpha": 1
-          },
-          "glow": {
-            "red": 0.8,
-            "green": 0.85,
-            "blue": 1.0,
-            "alpha": 1
-          },
-          "blush": {
-            "red": 0.85,
-            "green": 0.86,
-            "blue": 0.99,
-            "alpha": 1
+          "triple": {
+            "group": "talk",
+            "index": 2
           }
         }
-      },
-      "motion": {
-        "walkSpeedMultiplier": 0.94,
-        "roamRadiusMultiplier": 1.0,
-        "bobAmplitudeMultiplier": 1.0,
-        "stretchMultiplier": 1.0,
-        "tailSwingMultiplier": 0.7,
-        "blinkMinFrames": 110,
-        "blinkMaxFrames": 240,
-        "ambientDelayMinSeconds": 14,
-        "ambientDelayMaxSeconds": 24
-      },
-      "dialogue": {
-        "connectedIdle": [
-          "雫已经到位，可以随时切换动作",
-          "现在不止茉莉，Live2D 角色又多一个了"
-        ],
-        "disconnectedIdle": [
-          "我先在这里待命，等 Lime 恢复连接",
-          "离线也没关系，我会安静地守着"
-        ],
-        "connectedWalking": [
-          "雫也接入进来了，可以在右键里切换",
-          "这套 Live2D 资源现在能直接复用"
-        ],
-        "disconnectedWalking": [
-          "当前离线巡航中，我先保持轻动作",
-          "等连接恢复后，我会继续响应状态变化"
-        ],
-        "thinking": [
-          "让我用另一套 Live2D 动作陪它思考一下",
-          "这次不只是单一模型了"
-        ],
-        "done": [
-          "这一轮完成啦，我来做个收尾动作",
-          "如果想换风格，右键就能切角色"
-        ]
-      },
-      "accessories": {
-        "neck": "none",
-        "head": "flower",
-        "trail": "sparkles",
-        "cheeks": "blush"
-      },
-      "geometry": {
-        "headWidth": 120,
-        "headHeight": 115,
-        "headCornerRadius": 40,
-        "bellyWidth": 65,
-        "bellyHeight": 65,
-        "bellyCornerRadius": 30,
-        "bellyOffsetY": 15,
-        "highlightWidth": 15,
-        "highlightHeight": 45,
-        "highlightOffsetX": -25,
-        "highlightOffsetY": -10,
-        "earWidth": 0,
-        "earHeight": 0,
-        "earSpread": 0,
-        "earOffsetY": 0,
-        "earTilt": 0,
-        "earInnerWidth": 0,
-        "earInnerHeight": 0,
-        "tailWidth": 50,
-        "tailHeight": 20,
-        "tailOffsetX": -35,
-        "tailOffsetY": 20,
-        "haloSize": 125,
-        "shadowWidth": 130,
-        "shadowHeight": 20,
-        "pawWidth": 0,
-        "pawHeight": 0,
-        "pawSpacing": 0,
-        "eyeWhiteWidth": 18,
-        "eyeWhiteHeight": 18,
-        "pupilWidth": 8,
-        "pupilHeight": 8,
-        "eyeSpacing": 28,
-        "eyeOffsetY": -10,
-        "blushSize": 14,
-        "blushSpacing": 38,
-        "blushOffsetY": 8,
-        "mouthWidth": 0.1,
-        "mouthHeight": 0.1,
-        "mouthOffsetY": 15,
-        "whiskerLength": 0,
-        "whiskerThickness": 0,
-        "whiskerSideOffset": 0,
-        "whiskerSpacing": 0,
-        "whiskerRowSpacing": 0,
-        "whiskerOffsetY": 0,
-        "badgeSize": 20,
-        "badgeOffsetX": 30,
-        "badgeOffsetY": -30,
-        "scarfWidth": 0,
-        "scarfHeight": 0,
-        "scarfOffsetY": 0,
-        "scarfTailWidth": 0,
-        "scarfTailHeight": 0,
-        "scarfTailOffsetX": 0,
-        "scarfTailOffsetY": 0,
-        "crestSize": 20,
-        "crestOffsetY": -45
-      },
-      "symbols": {
-        "menuBar": "moon.stars.fill",
-        "connectedStatus": "sparkles",
-        "disconnectedStatus": "wifi.slash",
-        "thinkingPrimary": "brain.head.profile",
-        "donePrimary": "moon.stars.fill",
-        "doneSecondary": "checkmark.circle.fill",
-        "crest": "moon.stars.fill"
+      }
+    },
+    {
+      "id": "z16-light",
+      "displayName": "Z16 Light",
+      "switchBubble": "切换到 Z16 Light 模型",
+      "renderer": "live2d",
+      "live2d": {
+        "modelPath": "live2d-models/oml2d/z16/z16.model.json",
+        "modelPaths": null,
+        "layoutMode": "contain",
+        "scale": 0.95,
+        "offsetX": 0,
+        "offsetY": 0,
+        "positionX": null,
+        "positionY": null,
+        "anchorX": null,
+        "anchorY": null,
+        "stageStyle": null,
+        "emotionMap": {},
+        "stateActions": {
+          "idle": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "walking": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "thinking": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          },
+          "done": {
+            "motion": {
+              "group": "idle",
+              "index": 0
+            }
+          }
+        },
+        "tapActions": {
+          "single": null,
+          "double": null,
+          "triple": null
+        }
       }
     }
   ]

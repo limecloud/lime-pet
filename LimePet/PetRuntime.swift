@@ -30,6 +30,8 @@ final class PetSceneModel: ObservableObject {
     @Published var mouthCurve: CGFloat = 0.5
     @Published var companionDiagnostic = PetCompanionDiagnosticSnapshot.placeholder
     @Published var live2dQueuedAction: PetLive2DQueuedAction?
+    @Published var isResting = false
+    @Published var live2DClothesIndex = 0
 
     private var bubbleHideTask: Task<Void, Never>?
     private var animationTime: Double = 0
@@ -49,7 +51,27 @@ final class PetSceneModel: ObservableObject {
 
     func updateCharacter(_ character: PetCharacterTheme) {
         self.character = character
+        isResting = false
+        live2DClothesIndex = 0
         blinkCountdown = character.motion.randomBlinkInterval()
+        refreshLabels(isMoving: isMoving)
+    }
+
+    func setResting(_ resting: Bool) {
+        isResting = resting
+        refreshLabels(isMoving: isMoving && !resting)
+    }
+
+    var resolvedLive2DConfiguration: PetLive2DConfiguration? {
+        character.live2d?.resolved(forClothesIndex: live2DClothesIndex)
+    }
+
+    var live2DWardrobeCount: Int {
+        character.live2d?.wardrobeCount ?? 0
+    }
+
+    var canCycleLive2DClothes: Bool {
+        live2DWardrobeCount > 1
     }
 
     func showBubble(_ text: String, autoHideMs: Int? = 1800) {
@@ -153,6 +175,11 @@ final class PetSceneModel: ObservableObject {
             return
         }
 
+        if isResting, state != .hidden {
+            modeLabel = "休息中"
+            return
+        }
+
         switch state {
         case .hidden:
             modeLabel = "已隐藏"
@@ -222,8 +249,9 @@ final class PetCoordinator: NSObject {
     }
 
     private var currentPetSize: NSSize {
-        if currentCharacter.rendererKind == .live2d {
-            return NSSize(width: 320, height: 320)
+        if currentCharacter.rendererKind == .live2d, let live2d = currentCharacter.live2d {
+            let size = live2d.resolvedSceneFrameSize
+            return NSSize(width: size.width, height: size.height)
         }
 
         return NSSize(width: 260, height: 228)
@@ -307,6 +335,55 @@ final class PetCoordinator: NSObject {
 
     @objc private func resetConversationMenuAction() {
         requestChatReset(source: "menu")
+    }
+
+    private func toggleRestMode() {
+        guard sceneModel.state != .hidden else { return }
+
+        let nextValue = !sceneModel.isResting
+        sceneModel.setResting(nextValue)
+        sceneModel.markInteraction()
+        resetPatrolCycle(startPaused: true)
+
+        if nextValue {
+            sceneModel.showBubble("我先休息一会，点月亮就回来", autoHideMs: 1500)
+        } else {
+            sceneModel.showBubble("我回来继续陪你啦", autoHideMs: 1200)
+            queueLive2DStateAction(for: sceneModel.state)
+        }
+    }
+
+    private func cycleToNextLive2DCharacter() {
+        let live2DCharacters = characterLibrary.characters.filter { $0.rendererKind == .live2d }
+        guard !live2DCharacters.isEmpty else {
+            sceneModel.showBubble("当前还没有可切换的 Live2D 模型", autoHideMs: 1500)
+            return
+        }
+
+        let currentIndex = live2DCharacters.firstIndex(where: { $0.id == currentCharacter.id }) ?? -1
+        let nextIndex = (currentIndex + 1 + live2DCharacters.count) % live2DCharacters.count
+        applyCharacter(live2DCharacters[nextIndex], announce: true)
+    }
+
+    private func cycleCurrentModelClothes() {
+        guard currentCharacter.rendererKind == .live2d, let live2d = currentCharacter.live2d else {
+            sceneModel.showBubble("当前不是 Live2D 模型", autoHideMs: 1400)
+            return
+        }
+
+        let wardrobeCount = live2d.wardrobeCount
+        guard wardrobeCount > 1 else {
+            sceneModel.showBubble("该模型暂无可切换衣装", autoHideMs: 1500)
+            return
+        }
+
+        sceneModel.live2DClothesIndex = (sceneModel.live2DClothesIndex + 1) % wardrobeCount
+        sceneModel.markInteraction()
+        sceneModel.showBubble(
+            "切换到 \(currentCharacter.displayName) 衣装 \(sceneModel.live2DClothesIndex + 1)/\(wardrobeCount)",
+            autoHideMs: 1400
+        )
+        queueLive2DStateAction(for: sceneModel.state)
     }
 
     @objc private func quit() {
@@ -406,6 +483,15 @@ final class PetCoordinator: NSObject {
             },
             onReconnectRequested: { [weak self] in
                 self?.reconnectIPC()
+            },
+            onToggleRestRequested: { [weak self] in
+                self?.toggleRestMode()
+            },
+            onCycleClothesRequested: { [weak self] in
+                self?.cycleCurrentModelClothes()
+            },
+            onCycleCharacterRequested: { [weak self] in
+                self?.cycleToNextLive2DCharacter()
             },
             onHideRequested: { [weak self] in
                 self?.hidePet()
@@ -802,8 +888,10 @@ final class PetCoordinator: NSObject {
 
         var isMoving = false
         let shouldFreezeForPointer = isPointerInteractionActive
+        let shouldRest = sceneModel.isResting
         let canPatrol =
             sceneModel.state == .walking &&
+            !shouldRest &&
             !sceneModel.isDragging &&
             !shouldFreezeForPointer
 
@@ -843,7 +931,7 @@ final class PetCoordinator: NSObject {
             }
 
             sceneModel.isFacingRight = direction > 0
-        } else if !shouldFreezeForPointer {
+        } else if !shouldFreezeForPointer && !shouldRest {
             currentX += (anchorX - currentX) * 0.08
         }
 

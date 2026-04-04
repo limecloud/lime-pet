@@ -14,8 +14,8 @@
       {
         "label": "main",
         "title": "Lime Pet",
-        "width": 280,
-        "height": 300,
+        "width": 460,
+        "height": 470,
         "resizable": false,
         "decorations": false,
         "transparent": true,
