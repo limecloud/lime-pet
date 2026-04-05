@@ -131,6 +131,7 @@ GitHub Actions 发布策略：
   - 在推送 `v*` tag 时自动执行
   - 也支持手动 `workflow_dispatch`
   - 会同时上传 `macos-arm64`、`macos-x64` 两个 macOS dmg、unsigned zip、对应 `sha256` 与 Windows NSIS installer，并发布到 GitHub Release
+  - 若仓库已配置 Apple signing / notarization secrets，会自动把 macOS dmg 升级为已签名且已 notarize 的正式分发包
 
 ## Windows 本地开发
 

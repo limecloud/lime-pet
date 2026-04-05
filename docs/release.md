@@ -20,6 +20,7 @@
   - macOS 侧统一走 `scripts/package-release.sh`
   - Windows 侧统一走 `WindowsPet npm run tauri build`
   - 默认产出 `macos-arm64`、`macos-x64` 两份 macOS dmg、unsigned zip、对应 `sha256` 与 Windows NSIS installer
+  - 若配置了 Apple 签名 / notarization secrets，会自动对 macOS dmg 做 `codesign + notarytool + stapler`
   - tag 触发时会自动发布到 GitHub Release
 
 ## 本地发布命令
@@ -80,7 +81,7 @@ WindowsPet/src-tauri/target/release/bundle/nsis/*.exe
 - `APPLE_ID`
 - `APPLE_APP_SPECIFIC_PASSWORD`
 
-当前仓库先不强制启用这些 secret，保证 v1 能先稳定打 unsigned zip 与未 notarize 的 dmg。
+当前仓库仍不强制启用这些 secret；未配置时会继续产出 unsigned zip 与未 notarize 的 dmg。配置完成后，`release.yml` 会自动切换到已签名且已 notarize 的 macOS dmg 发布链路。
 
 ## 与 Lime 主仓的关系
 
@@ -88,4 +89,5 @@ WindowsPet/src-tauri/target/release/bundle/nsis/*.exe
 
 - 保留 `Quality` / `Release` 两条主线，而不是把开发构建、发布构建、签名构建拆成多套
 - 当前不强制 Apple 签名 secrets，先保证 tag 即可稳定产出 unsigned zip 与 dmg 下载包
+- 一旦配置 Apple signing secrets，发布链路会优先产出可直接打开的已签名 / 已 notarize macOS dmg
 - 当前已经覆盖 macOS 与 Windows 两个 companion 壳，但仍保持最小必要矩阵，不额外引入伪跨平台壳层抽象
