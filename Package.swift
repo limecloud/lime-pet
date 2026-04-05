@@ -18,16 +18,18 @@ let package = Package(
             name: "LimePet",
             path: "LimePet",
             exclude: [
-                "Info.plist"
+                "Info.plist",
+                "Resources/live2d-model-presets.json",
+                "Resources/live2d-models"
             ],
             resources: [
                 .process("Resources/character-library.json"),
+                .process("Resources/live2d-model-catalog.json"),
                 .process("Resources/dewy-lime-cutout.png"),
                 .process("Resources/dewy-lime-shadow.png"),
                 .process("Resources/dewy-lime.png"),
                 .process("Resources/dewy-lime-transparent.png"),
-                .copy("Resources/live2d-runtime"),
-                .copy("Resources/live2d-models")
+                .copy("Resources/live2d-runtime")
             ]
         )
     ]

@@ -468,14 +468,23 @@ final class PetCharacterLibrary {
 
     private let defaults = UserDefaults.standard
     private let selectionKey = "com.lime.pet.character.v1"
-    private let catalog: PetCharacterCatalog
+    private let bundledCatalog: PetCharacterCatalog
+    private var installedRecordsByID: [String: PetInstalledModelRecord] = [:]
+    private var remoteCatalogItemsByID: [String: PetModelCatalogItem] = [:]
+    private var catalog: PetCharacterCatalog
 
     init(bundle: Bundle? = nil) {
-        self.catalog = Self.loadCatalog(bundle: bundle ?? defaultPetCharacterBundle)
+        let bundledCatalog = Self.loadCatalog(bundle: bundle ?? defaultPetCharacterBundle)
+        self.bundledCatalog = bundledCatalog
+        self.catalog = bundledCatalog
     }
 
     var characters: [PetCharacterTheme] {
         catalog.characters
+    }
+
+    func isBundledCharacter(id: String) -> Bool {
+        bundledCatalog.characters.contains(where: { $0.id == id })
     }
 
     func selectedCharacter() -> PetCharacterTheme {
@@ -495,11 +504,68 @@ final class PetCharacterLibrary {
         return catalog.characters.first(where: { $0.id == id })
     }
 
+    func storedSelectionID() -> String? {
+        defaults.string(forKey: selectionKey)
+    }
+
+    func remoteCatalogItem(id: String?) -> PetModelCatalogItem? {
+        guard let id else { return nil }
+        return remoteCatalogItemsByID[id]
+    }
+
+    func installedRecord(id: String?) -> PetInstalledModelRecord? {
+        guard let id else { return nil }
+        return installedRecordsByID[id]
+    }
+
     @discardableResult
     func selectCharacter(id: String) -> PetCharacterTheme? {
         guard let character = character(id: id) else { return nil }
         defaults.set(id, forKey: selectionKey)
         return character
+    }
+
+    func applyInstalledModels(_ records: [PetInstalledModelRecord]) {
+        installedRecordsByID = Dictionary(uniqueKeysWithValues: records.map { ($0.id, $0) })
+        rebuildCatalog()
+    }
+
+    func applyRemoteCatalog(_ items: [PetModelCatalogItem]) {
+        remoteCatalogItemsByID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
+        rebuildCatalog()
+    }
+
+    private func rebuildCatalog() {
+        var orderedIDs: [String] = []
+        var mergedCharacters: [String: PetCharacterTheme] = [:]
+
+        func upsert(_ character: PetCharacterTheme) {
+            if mergedCharacters[character.id] == nil {
+                orderedIDs.append(character.id)
+            }
+            mergedCharacters[character.id] = character
+        }
+
+        for character in bundledCatalog.characters {
+            upsert(character)
+        }
+
+        for record in installedRecordsByID.values.sorted(by: {
+            $0.character.displayName.localizedStandardCompare($1.character.displayName) == .orderedAscending
+        }) {
+            upsert(record.character)
+        }
+
+        for item in remoteCatalogItemsByID.values.sorted(by: {
+            $0.character.displayName.localizedStandardCompare($1.character.displayName) == .orderedAscending
+        }) {
+            upsert(item.character)
+        }
+
+        catalog = PetCharacterCatalog(
+            defaultCharacterId: bundledCatalog.defaultCharacterId,
+            characters: orderedIDs.compactMap { mergedCharacters[$0] }
+        )
     }
 
     private static func loadCatalog(bundle: Bundle) -> PetCharacterCatalog {

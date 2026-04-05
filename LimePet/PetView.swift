@@ -2,7 +2,6 @@ import SwiftUI
 
 struct PetView: View {
     @ObservedObject var sceneModel: PetSceneModel
-    let availableCharacters: [PetCharacterTheme]
     let debugWindowSurface: Bool
     let onDragChanged: (DragGesture.Value) -> Void
     let onDragEnded: (DragGesture.Value) -> Void
@@ -14,6 +13,7 @@ struct PetView: View {
     let onSyncProviderOverviewRequested: () -> Void
     let onReconnectRequested: () -> Void
     let onToggleRestRequested: () -> Void
+    let onInstallModelRequested: () -> Void
     let onCycleClothesRequested: () -> Void
     let onCycleCharacterRequested: () -> Void
     let onHideRequested: () -> Void
@@ -30,7 +30,7 @@ struct PetView: View {
 
     private var sceneFrameSize: CGSize {
         if sceneModel.character.rendererKind == .live2d,
-           let configuration = live2DConfiguration {
+           let configuration = live2DConfiguration ?? sceneModel.character.live2d {
             return configuration.resolvedSceneFrameSize
         }
 
@@ -45,8 +45,41 @@ struct PetView: View {
         showsLive2DChrome && isHoveringLive2DChrome
     }
 
+    private var showsLive2DStatusCard: Bool {
+        if !showsLive2DChrome {
+            return false
+        }
+
+        if sceneModel.isResting {
+            return false
+        }
+
+        switch sceneModel.currentInstallState {
+        case .installable, .installing, .updateAvailable, .failed:
+            return true
+        case .bundled, .installed:
+            return false
+        }
+    }
+
+    private var quickMenuTopPadding: CGFloat {
+        showsLive2DStatusCard ? 162 : 92
+    }
+
     private var shouldRenderAmbientGlow: Bool {
         sceneModel.character.id == "dewy-lime"
+    }
+
+    private var showsInstallShortcut: Bool {
+        if sceneModel.currentInstallState.canInstall {
+            return true
+        }
+
+        if case .installing = sceneModel.currentInstallState {
+            return true
+        }
+
+        return false
     }
 
     private var statusTitle: String {
@@ -55,7 +88,20 @@ struct PetView: View {
         }
 
         if sceneModel.character.rendererKind == .live2d {
-            return "\(sceneModel.character.displayName) Live2D 舞台"
+            switch sceneModel.currentInstallState {
+            case .installable:
+                return "\(sceneModel.character.displayName) 待安装"
+            case .installing:
+                return "\(sceneModel.character.displayName) 安装中"
+            case .installed:
+                return "\(sceneModel.character.displayName) 已安装"
+            case .updateAvailable:
+                return "\(sceneModel.character.displayName) 可更新"
+            case .failed:
+                return "\(sceneModel.character.displayName) 安装失败"
+            case .bundled:
+                return "\(sceneModel.character.displayName) Live2D 舞台"
+            }
         }
 
         return "\(sceneModel.character.displayName) 已待命"
@@ -67,6 +113,19 @@ struct PetView: View {
         }
 
         if sceneModel.character.rendererKind == .live2d {
+            switch sceneModel.currentInstallState {
+            case .installable:
+                return "当前模型还未安装，移入左侧快捷菜单后点一下安装就能下载到本地。"
+            case .installing(let progress):
+                return "正在下载并校验模型资源，当前进度 \(Int(progress * 100))%。"
+            case .updateAvailable:
+                return "本地模型可继续使用，也可以点安装按钮拉取最新版本。"
+            case .failed(let message):
+                return message
+            case .bundled, .installed:
+                break
+            }
+
             if sceneModel.canCycleLive2DClothes {
                 return "衣装 \(sceneModel.live2DClothesIndex + 1)/\(sceneModel.live2DWardrobeCount)，左侧快捷按钮可休息、换装和切模型。"
             }
@@ -96,14 +155,20 @@ struct PetView: View {
 
             Group {
                 if sceneModel.character.rendererKind == .live2d {
-                    PetRenderSurface(sceneModel: sceneModel, palette: palette)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                        .opacity(sceneModel.isResting ? 0.08 : 1)
-                        .scaleEffect(sceneModel.isResting ? 0.92 : 1, anchor: .bottom)
-                        .offset(
-                            x: showsLive2DChrome ? 86 : 0,
-                            y: sceneModel.isResting ? 28 : -8
-                        )
+                    ZStack {
+                        if sceneModel.canRenderCurrentLive2D {
+                            PetRenderSurface(sceneModel: sceneModel, palette: palette)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                                .opacity(sceneModel.isResting ? 0.08 : 1)
+                                .scaleEffect(sceneModel.isResting ? 0.92 : 1, anchor: .bottom)
+                        } else {
+                            live2DInstallStage
+                        }
+                    }
+                    .offset(
+                        x: showsLive2DChrome ? 86 : 0,
+                        y: sceneModel.isResting ? 28 : -8
+                    )
                 } else {
                     VStack(spacing: 0) {
                         Spacer(minLength: 62)
@@ -117,13 +182,16 @@ struct PetView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     .padding(.top, 24)
                     .padding(.leading, 26)
-                    .opacity(showsChromeOverlay ? 1 : 0)
-                    .offset(x: showsChromeOverlay ? 0 : -20, y: showsChromeOverlay ? 0 : 6)
-                    .allowsHitTesting(showsChromeOverlay)
+                    .opacity(showsChromeOverlay && showsLive2DStatusCard ? 1 : 0)
+                    .offset(
+                        x: showsChromeOverlay && showsLive2DStatusCard ? 0 : -20,
+                        y: showsChromeOverlay && showsLive2DStatusCard ? 0 : 6
+                    )
+                    .allowsHitTesting(showsChromeOverlay && showsLive2DStatusCard)
 
                 live2DQuickMenu
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .padding(.top, 162)
+                    .padding(.top, quickMenuTopPadding)
                     .padding(.leading, 26)
                     .opacity(showsChromeOverlay ? 1 : 0)
                     .offset(x: showsChromeOverlay ? 0 : -20, y: showsChromeOverlay ? 0 : 10)
@@ -151,10 +219,19 @@ struct PetView: View {
         )
         .contextMenu {
             Menu("切换桌宠") {
-                ForEach(availableCharacters, id: \.id) { character in
+                ForEach(sceneModel.availableCharacters, id: \.id) { character in
                     Button(character.displayName) {
                         onCharacterSelected(character.id)
                     }
+                }
+            }
+
+            if sceneModel.character.rendererKind == .live2d,
+               sceneModel.currentInstallState.canInstall {
+                Divider()
+
+                Button("\(sceneModel.currentInstallState.actionTitle)当前模型") {
+                    onInstallModelRequested()
                 }
             }
 
@@ -330,6 +407,16 @@ struct PetView: View {
                 action: onToggleRestRequested
             )
 
+            if showsInstallShortcut {
+                quickActionButton(
+                    symbol: installButtonSymbol,
+                    title: sceneModel.currentInstallState.actionTitle,
+                    emphasis: 1,
+                    isEnabled: sceneModel.currentInstallState.canInstall,
+                    action: onInstallModelRequested
+                )
+            }
+
             if sceneModel.canCycleLive2DClothes {
                 quickActionButton(
                     symbol: "tshirt.fill",
@@ -352,6 +439,7 @@ struct PetView: View {
         symbol: String,
         title: String,
         emphasis: Double,
+        isEnabled: Bool = true,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
@@ -381,9 +469,87 @@ struct PetView: View {
                     .stroke(Color.white.opacity(0.86), lineWidth: 1)
             )
             .shadow(color: Color.black.opacity(0.12), radius: 14, y: 7)
-            .opacity(emphasis)
+            .opacity(isEnabled ? emphasis : 0.72)
         }
         .buttonStyle(.plain)
+        .disabled(!isEnabled)
+    }
+
+    private var installButtonSymbol: String {
+        switch sceneModel.currentInstallState {
+        case .installable:
+            return "arrow.down.circle.fill"
+        case .installing:
+            return "arrow.triangle.2.circlepath.circle.fill"
+        case .updateAvailable:
+            return "arrow.clockwise.circle.fill"
+        case .failed:
+            return "exclamationmark.arrow.circlepath"
+        case .bundled, .installed:
+            return "arrow.down.circle.fill"
+        }
+    }
+
+    private var live2DInstallStage: some View {
+        VStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.96),
+                                Color(red: 0.9, green: 0.98, blue: 0.92).opacity(0.86)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 108, height: 108)
+
+                Image(systemName: installButtonSymbol)
+                    .font(.system(size: 34, weight: .bold))
+                    .foregroundStyle(Color(red: 0.21, green: 0.42, blue: 0.28))
+            }
+
+            VStack(spacing: 8) {
+                Text(statusTitle)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(Color(red: 0.16, green: 0.25, blue: 0.19))
+
+                Text(statusMessage)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Color(red: 0.31, green: 0.41, blue: 0.34))
+                    .lineLimit(3)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 280)
+            }
+
+            if sceneModel.currentInstallState.canInstall {
+                Button("\(sceneModel.currentInstallState.actionTitle)到本地") {
+                    onInstallModelRequested()
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(Color.white)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 10)
+                .background(
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 0.45, green: 0.69, blue: 0.51),
+                                    Color(red: 0.32, green: 0.54, blue: 0.39)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                )
+            }
+        }
+        .padding(.horizontal, 26)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func bubble(text: String) -> some View {

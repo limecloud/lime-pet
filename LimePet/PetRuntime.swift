@@ -4,10 +4,69 @@ import SwiftUI
 
 private let petTapThreshold: CGFloat = 10
 
+private struct PetInstallDeepLink {
+    let modelID: String
+    let tenantID: String?
+    let controlPlaneBaseURL: URL?
+    let shouldInstall: Bool
+
+    init?(url: URL) {
+        let supportedSchemes: Set<String> = ["lime", "lime-pet"]
+        guard let scheme = url.scheme?.lowercased(), supportedSchemes.contains(scheme) else { return nil }
+        guard url.host?.lowercased() == "pet" else { return nil }
+
+        let normalizedPath = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/")).lowercased()
+        guard normalizedPath == "install" else { return nil }
+
+        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+
+        func queryValue(_ names: [String]) -> String? {
+            guard let components else { return nil }
+
+            for name in names {
+                if let value = components.queryItems?.first(where: {
+                    $0.name.caseInsensitiveCompare(name) == .orderedSame
+                })?.value?.trimmingCharacters(in: .whitespacesAndNewlines),
+                   !value.isEmpty {
+                    return value
+                }
+            }
+
+            return nil
+        }
+
+        guard let modelID = queryValue(["modelId", "id"]) else {
+            return nil
+        }
+
+        self.modelID = modelID
+        self.tenantID = queryValue(["tenantId", "tenant"])
+        self.controlPlaneBaseURL = queryValue(["controlPlaneBaseUrl", "baseUrl"]).flatMap(URL.init(string:))
+        self.shouldInstall = Self.parseBool(
+            queryValue(["install", "autoInstall"]),
+            defaultValue: true
+        )
+    }
+
+    private static func parseBool(_ rawValue: String?, defaultValue: Bool) -> Bool {
+        guard let rawValue else { return defaultValue }
+
+        switch rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+        case "0", "false", "no", "off":
+            return false
+        case "1", "true", "yes", "on":
+            return true
+        default:
+            return defaultValue
+        }
+    }
+}
+
 @MainActor
 final class PetSceneModel: ObservableObject {
     @Published var state: PetState = .walking
     @Published var bubbleText: String?
+    @Published var availableCharacters: [PetCharacterTheme] = []
     @Published var isFacingRight = true
     @Published var isConnected = false
     @Published var connectionLabel = "等待连接"
@@ -32,6 +91,8 @@ final class PetSceneModel: ObservableObject {
     @Published var live2dQueuedAction: PetLive2DQueuedAction?
     @Published var isResting = false
     @Published var live2DClothesIndex = 0
+    @Published var currentInstallState: PetCurrentModelInstallState = .bundled
+    @Published var canRenderCurrentLive2D = true
 
     private var bubbleHideTask: Task<Void, Never>?
     private var animationTime: Double = 0
@@ -57,13 +118,26 @@ final class PetSceneModel: ObservableObject {
         refreshLabels(isMoving: isMoving)
     }
 
+    func updateAvailableCharacters(_ characters: [PetCharacterTheme]) {
+        availableCharacters = characters
+    }
+
+    func updateCurrentInstallState(_ installState: PetCurrentModelInstallState) {
+        currentInstallState = installState
+        canRenderCurrentLive2D = character.rendererKind != .live2d || installState.isRenderable
+        if !canRenderCurrentLive2D {
+            live2DClothesIndex = 0
+        }
+    }
+
     func setResting(_ resting: Bool) {
         isResting = resting
         refreshLabels(isMoving: isMoving && !resting)
     }
 
     var resolvedLive2DConfiguration: PetLive2DConfiguration? {
-        character.live2d?.resolved(forClothesIndex: live2DClothesIndex)
+        guard canRenderCurrentLive2D else { return nil }
+        return character.live2d?.resolved(forClothesIndex: live2DClothesIndex)
     }
 
     var live2DWardrobeCount: Int {
@@ -71,7 +145,7 @@ final class PetSceneModel: ObservableObject {
     }
 
     var canCycleLive2DClothes: Bool {
-        live2DWardrobeCount > 1
+        canRenderCurrentLive2D && live2DWardrobeCount > 1
     }
 
     func showBubble(_ text: String, autoHideMs: Int? = 1800) {
@@ -211,6 +285,8 @@ final class PetCoordinator: NSObject {
     private let configuration: LaunchConfiguration
     private let placementStore = PetPlacementStore.shared
     private let characterLibrary = PetCharacterLibrary.shared
+    private let modelCatalogClient = PetModelCatalogClient()
+    private let modelInstallService = PetModelInstallService()
     private lazy var ipcClient = PetIPCClient(configuration: configuration, delegate: self)
     private let speechCoordinator = PetSpeechCoordinator()
 
@@ -219,6 +295,8 @@ final class PetCoordinator: NSObject {
     private var statusItem: NSStatusItem?
     private var companionDiagnosticMenu: NSMenu?
     private var providerSummaryMenu: NSMenu?
+    private var appearanceMenu: NSMenu?
+    private var installCurrentModelMenuItem: NSMenuItem?
     private var characterMenuItems: [NSMenuItem] = []
     private var dragStartMouseLocation: NSPoint?
     private var dragMouseOffset: NSPoint?
@@ -243,6 +321,9 @@ final class PetCoordinator: NSObject {
     private var currentEndpointLabel: String
     private var hasConnectedOnce = false
     private var live2dActionSequence = 0
+    private var activeInstallCharacterID: String?
+    private var activeInstallProgress = 0.0
+    private var installErrorsByID: [String: String] = [:]
 
     private var isPointerInteractionActive: Bool {
         dragStartMouseLocation != nil || pendingTapCount > 0 || tapDispatchTask != nil
@@ -259,10 +340,16 @@ final class PetCoordinator: NSObject {
 
     init(configuration: LaunchConfiguration) {
         self.configuration = configuration
-        self.currentCharacter = PetCharacterLibrary.shared.selectedCharacter()
+        characterLibrary.applyInstalledModels(modelInstallService.loadInstalledModels())
+        if let bundledCatalog = modelCatalogClient.loadBundledCatalog() {
+            characterLibrary.applyRemoteCatalog(bundledCatalog.items)
+        }
+        self.currentCharacter = characterLibrary.selectedCharacter()
         self.currentEndpointLabel = configuration.endpoint?.absoluteString ?? "未配置"
         super.init()
+        sceneModel.updateAvailableCharacters(characterLibrary.characters)
         sceneModel.updateCharacter(currentCharacter)
+        refreshCurrentCharacterInstallState()
         refreshDiagnosticPresentation()
     }
 
@@ -275,6 +362,9 @@ final class PetCoordinator: NSObject {
         ipcClient.connect()
         refreshDiagnosticPresentation()
         sceneModel.showBubble("轻点打开 Lime，双击听青柠一句话，三击拿下一步建议", autoHideMs: 2200)
+        Task { [weak self] in
+            await self?.refreshRemoteModelCatalog()
+        }
     }
 
     func stop() {
@@ -286,6 +376,16 @@ final class PetCoordinator: NSObject {
             persistPlacement(on: screen)
         }
         ipcClient.disconnect()
+    }
+
+    func handleIncomingURL(_ url: URL) {
+        guard let deepLink = PetInstallDeepLink(url: url) else {
+            return
+        }
+
+        Task { [weak self] in
+            await self?.handleInstallDeepLink(deepLink)
+        }
     }
 
     @objc private func reconnectIPC() {
@@ -337,6 +437,10 @@ final class PetCoordinator: NSObject {
         requestChatReset(source: "menu")
     }
 
+    @objc private func installCurrentCharacterMenuAction() {
+        installCurrentCharacterIfNeeded()
+    }
+
     private func toggleRestMode() {
         guard sceneModel.state != .hidden else { return }
 
@@ -386,6 +490,46 @@ final class PetCoordinator: NSObject {
         queueLive2DStateAction(for: sceneModel.state)
     }
 
+    private func installCurrentCharacterIfNeeded() {
+        guard currentCharacter.rendererKind == .live2d else {
+            sceneModel.showBubble("当前形态是内置青柠，无需安装", autoHideMs: 1400)
+            return
+        }
+
+        guard sceneModel.currentInstallState.canInstall else {
+            return
+        }
+
+        guard let catalogItem = characterLibrary.remoteCatalogItem(id: currentCharacter.id) else {
+            sceneModel.showBubble("当前模型缺少安装清单", autoHideMs: 1500)
+            return
+        }
+
+        guard activeInstallCharacterID == nil || activeInstallCharacterID == catalogItem.id else {
+            sceneModel.showBubble("已有其他模型正在安装，请稍后再试", autoHideMs: 1600)
+            return
+        }
+
+        activeInstallCharacterID = catalogItem.id
+        activeInstallProgress = 0
+        installErrorsByID[catalogItem.id] = nil
+        refreshCurrentCharacterInstallState()
+        refreshCharacterMenuState()
+        sceneModel.showBubble("开始安装 \(catalogItem.character.displayName)", autoHideMs: 1200)
+
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                _ = try await self.modelInstallService.install(item: catalogItem) { [weak self] progress in
+                    await self?.updateInstallProgress(for: catalogItem.id, progress: progress)
+                }
+                await self.finishInstallSuccess(for: catalogItem.id)
+            } catch {
+                await self.finishInstallFailure(for: catalogItem.id, error: error)
+            }
+        }
+    }
+
     @objc private func quit() {
         NSApp.terminate(nil)
     }
@@ -400,6 +544,7 @@ final class PetCoordinator: NSObject {
         sceneModel.live2dQueuedAction = nil
         updateWindowSizeForCurrentCharacter()
         startAmbientDialogueLoop()
+        refreshCurrentCharacterInstallState()
         refreshCharacterMenuState()
         updateStatusButtonIcon()
         queueLive2DStateAction(for: sceneModel.state)
@@ -420,9 +565,229 @@ final class PetCoordinator: NSObject {
 
     private func refreshCharacterMenuState() {
         for item in characterMenuItems {
-            let isSelected = (item.representedObject as? String) == currentCharacter.id
+            guard let characterID = item.representedObject as? String else { continue }
+            let isSelected = characterID == currentCharacter.id
             item.state = isSelected ? .on : .off
+            item.title = characterMenuTitle(for: characterID)
         }
+        refreshInstallMenuItemState()
+    }
+
+    private func refreshCurrentCharacterInstallState() {
+        sceneModel.updateCurrentInstallState(installState(for: currentCharacter))
+    }
+
+    private func refreshCharacterCatalogPresentation() {
+        sceneModel.updateAvailableCharacters(characterLibrary.characters)
+        rebuildCharacterMenu()
+
+        let resolvedCurrent =
+            characterLibrary.character(id: currentCharacter.id) ??
+            characterLibrary.character(id: characterLibrary.storedSelectionID()) ??
+            characterLibrary.selectedCharacter()
+
+        if resolvedCurrent.id != currentCharacter.id {
+            applyCharacter(resolvedCurrent, announce: false)
+        } else if currentCharacter != resolvedCurrent {
+            applyCharacter(resolvedCurrent, announce: false)
+        } else {
+            refreshCurrentCharacterInstallState()
+            refreshCharacterMenuState()
+        }
+    }
+
+    private func rebuildCharacterMenu() {
+        guard let appearanceMenu else { return }
+        appearanceMenu.removeAllItems()
+        characterMenuItems.removeAll()
+
+        for character in characterLibrary.characters {
+            let item = NSMenuItem(title: characterMenuTitle(for: character.id), action: #selector(selectCharacter(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = character.id
+            item.image = NSImage(
+                systemSymbolName: character.symbols.menuBar,
+                accessibilityDescription: character.displayName
+            )
+            appearanceMenu.addItem(item)
+            characterMenuItems.append(item)
+        }
+
+        refreshCharacterMenuState()
+    }
+
+    private func characterMenuTitle(for characterID: String) -> String {
+        guard let character = characterLibrary.character(id: characterID) else {
+            return characterID
+        }
+
+        switch installState(for: character) {
+        case .bundled:
+            return character.displayName
+        case .installable:
+            return "\(character.displayName) · 需安装"
+        case .installing(let progress):
+            return "\(character.displayName) · 安装 \(Int(progress * 100))%"
+        case .installed:
+            return "\(character.displayName) · 已安装"
+        case .updateAvailable:
+            return "\(character.displayName) · 可更新"
+        case .failed:
+            return "\(character.displayName) · 安装失败"
+        }
+    }
+
+    private func refreshInstallMenuItemState() {
+        guard let installCurrentModelMenuItem else { return }
+
+        if currentCharacter.rendererKind != .live2d {
+            installCurrentModelMenuItem.isHidden = true
+            return
+        }
+
+        let installState = sceneModel.currentInstallState
+        switch installState {
+        case .installable, .installing, .updateAvailable, .failed:
+            installCurrentModelMenuItem.isHidden = false
+        case .bundled, .installed:
+            installCurrentModelMenuItem.isHidden = true
+        }
+        installCurrentModelMenuItem.title = "\(installState.actionTitle)当前模型"
+        installCurrentModelMenuItem.isEnabled = installState.canInstall
+    }
+
+    private func installState(for character: PetCharacterTheme) -> PetCurrentModelInstallState {
+        if character.rendererKind != .live2d || characterLibrary.isBundledCharacter(id: character.id) {
+            return .bundled
+        }
+
+        if activeInstallCharacterID == character.id {
+            return .installing(progress: activeInstallProgress)
+        }
+
+        if let errorMessage = installErrorsByID[character.id], !errorMessage.isEmpty {
+            return .failed(message: errorMessage)
+        }
+
+        let installedRecord = characterLibrary.installedRecord(id: character.id)
+        let remoteItem = characterLibrary.remoteCatalogItem(id: character.id)
+
+        if let installedRecord, let remoteItem {
+            return installedRecord.version == remoteItem.version ? .installed : .updateAvailable
+        }
+
+        if installedRecord != nil {
+            return .installed
+        }
+
+        return remoteItem == nil ? .failed(message: "缺少模型目录") : .installable
+    }
+
+    private func updateInstallProgress(for characterID: String, progress: Double) async {
+        guard activeInstallCharacterID == characterID else { return }
+        activeInstallProgress = progress
+        refreshCurrentCharacterInstallState()
+        refreshCharacterMenuState()
+    }
+
+    private func finishInstallSuccess(for characterID: String) async {
+        activeInstallCharacterID = nil
+        activeInstallProgress = 0
+        installErrorsByID[characterID] = nil
+        characterLibrary.applyInstalledModels(modelInstallService.loadInstalledModels())
+        refreshCharacterCatalogPresentation()
+
+        if currentCharacter.id == characterID {
+            sceneModel.markInteraction()
+            sceneModel.showBubble("\(currentCharacter.displayName) 安装完成", autoHideMs: 1400)
+            queueLive2DStateAction(for: sceneModel.state)
+        }
+    }
+
+    private func finishInstallFailure(for characterID: String, error: Error) async {
+        activeInstallCharacterID = nil
+        activeInstallProgress = 0
+        installErrorsByID[characterID] = error.localizedDescription
+        refreshCurrentCharacterInstallState()
+        refreshCharacterMenuState()
+
+        if currentCharacter.id == characterID {
+            sceneModel.showBubble(error.localizedDescription, autoHideMs: 1800)
+        }
+    }
+
+    @discardableResult
+    private func refreshRemoteModelCatalog(
+        baseURL overrideBaseURL: URL? = nil,
+        tenantID overrideTenantID: String? = nil
+    ) async -> Bool {
+        let resolvedTenantID =
+            overrideTenantID?.trimmingCharacters(in: .whitespacesAndNewlines) ??
+            configuration.tenantId.trimmingCharacters(in: .whitespacesAndNewlines)
+        let resolvedBaseURL = overrideBaseURL ?? configuration.controlPlaneBaseURL
+
+        guard let resolvedBaseURL, !resolvedTenantID.isEmpty else {
+            return false
+        }
+
+        do {
+            let catalog = try await modelCatalogClient.fetchRemoteCatalog(
+                baseURL: resolvedBaseURL,
+                tenantID: resolvedTenantID
+            )
+            characterLibrary.applyRemoteCatalog(catalog.items)
+            refreshCharacterCatalogPresentation()
+            return true
+        } catch {
+            NSLog("[PetModelCatalog] remote catalog unavailable: \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    private func handleInstallDeepLink(_ deepLink: PetInstallDeepLink) async {
+        let didRefreshCatalog = await refreshRemoteModelCatalog(
+            baseURL: deepLink.controlPlaneBaseURL,
+            tenantID: deepLink.tenantID
+        )
+
+        if sceneModel.state == .hidden {
+            revealLastVisibleState()
+        }
+        updateWindowVisibility()
+
+        guard let targetCharacter = characterLibrary.character(id: deepLink.modelID) else {
+            let fallbackMessage = didRefreshCatalog
+                ? "没有找到模型 \(deepLink.modelID)"
+                : "模型目录尚未就绪：\(deepLink.modelID)"
+            sceneModel.showBubble(fallbackMessage, autoHideMs: 1800)
+            return
+        }
+
+        applyCharacter(targetCharacter, announce: false)
+        sceneModel.markInteraction()
+
+        if deepLink.shouldInstall {
+            if sceneModel.currentInstallState.canInstall {
+                installCurrentCharacterIfNeeded()
+                return
+            }
+
+            switch sceneModel.currentInstallState {
+            case .bundled, .installed:
+                sceneModel.showBubble("\(currentCharacter.displayName) 已就绪", autoHideMs: 1500)
+            case .installing:
+                sceneModel.showBubble("正在安装 \(currentCharacter.displayName)", autoHideMs: 1500)
+            case .updateAvailable:
+                installCurrentCharacterIfNeeded()
+            case .failed(let message):
+                sceneModel.showBubble(message, autoHideMs: 1800)
+            case .installable:
+                installCurrentCharacterIfNeeded()
+            }
+            return
+        }
+
+        sceneModel.showBubble("已切换到 \(currentCharacter.displayName)", autoHideMs: 1400)
     }
 
     private func updateStatusButtonIcon() {
@@ -455,7 +820,6 @@ final class PetCoordinator: NSObject {
 
         let rootView = PetView(
             sceneModel: sceneModel,
-            availableCharacters: characterLibrary.characters,
             debugWindowSurface: configuration.debugWindowSurface,
             onDragChanged: { [weak self] value in
                 self?.handleDragChanged(value)
@@ -486,6 +850,9 @@ final class PetCoordinator: NSObject {
             },
             onToggleRestRequested: { [weak self] in
                 self?.toggleRestMode()
+            },
+            onInstallModelRequested: { [weak self] in
+                self?.installCurrentCharacterIfNeeded()
             },
             onCycleClothesRequested: { [weak self] in
                 self?.cycleCurrentModelClothes()
@@ -540,6 +907,11 @@ final class PetCoordinator: NSObject {
         resetChatItem.target = self
         menu.addItem(resetChatItem)
 
+        let installModelItem = NSMenuItem(title: "安装当前模型", action: #selector(installCurrentCharacterMenuAction), keyEquivalent: "i")
+        installModelItem.target = self
+        menu.addItem(installModelItem)
+        installCurrentModelMenuItem = installModelItem
+
         menu.addItem(NSMenuItem.separator())
 
         let reconnectItem = NSMenuItem(title: "重连 Lime", action: #selector(reconnectIPC), keyEquivalent: "r")
@@ -572,19 +944,10 @@ final class PetCoordinator: NSObject {
 
         let appearanceItem = NSMenuItem(title: "切换外观", action: nil, keyEquivalent: "")
         let appearanceMenu = NSMenu(title: "切换外观")
-        for character in characterLibrary.characters {
-            let item = NSMenuItem(title: character.displayName, action: #selector(selectCharacter(_:)), keyEquivalent: "")
-            item.target = self
-            item.representedObject = character.id
-            item.image = NSImage(
-                systemSymbolName: character.symbols.menuBar,
-                accessibilityDescription: character.displayName
-            )
-            appearanceMenu.addItem(item)
-            characterMenuItems.append(item)
-        }
+        self.appearanceMenu = appearanceMenu
         menu.addItem(appearanceItem)
         menu.setSubmenu(appearanceMenu, for: appearanceItem)
+        rebuildCharacterMenu()
 
         menu.addItem(NSMenuItem.separator())
 
@@ -788,11 +1151,17 @@ final class PetCoordinator: NSObject {
     }
 
     private func queueLive2DStateAction(for state: PetState) {
+        guard sceneModel.canRenderCurrentLive2D else {
+            sceneModel.live2dQueuedAction = nil
+            return
+        }
         queueLive2DAction(currentCharacter.live2d?.resolvedStateAction(for: state))
     }
 
     private func queueLive2DTapAction(_ kind: PetLive2DTapKind) {
-        guard let live2d = currentCharacter.live2d, currentCharacter.rendererKind == .live2d else {
+        guard sceneModel.canRenderCurrentLive2D,
+              let live2d = currentCharacter.live2d,
+              currentCharacter.rendererKind == .live2d else {
             return
         }
 
@@ -814,7 +1183,9 @@ final class PetCoordinator: NSObject {
     }
 
     private func queueIncomingLive2DAction(_ payload: CompanionLive2DActionPayload) {
-        guard let live2d = currentCharacter.live2d, currentCharacter.rendererKind == .live2d else {
+        guard sceneModel.canRenderCurrentLive2D,
+              let live2d = currentCharacter.live2d,
+              currentCharacter.rendererKind == .live2d else {
             return
         }
 
@@ -835,7 +1206,10 @@ final class PetCoordinator: NSObject {
     }
 
     private func queueLive2DAction(_ content: PetLive2DResolvedActionContent?) {
-        guard currentCharacter.rendererKind == .live2d, let content, content.hasEffect else {
+        guard sceneModel.canRenderCurrentLive2D,
+              currentCharacter.rendererKind == .live2d,
+              let content,
+              content.hasEffect else {
             return
         }
 

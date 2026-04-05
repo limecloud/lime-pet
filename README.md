@@ -22,7 +22,8 @@
 - 菜单栏支持重连、回到屏幕中央、左/中/右停靠、显示 / 隐藏桌宠
 - macOS 菜单栏与桌宠右键菜单、Windows 桌宠右键菜单都可直接查看 Companion 连接诊断、最近同步时间与脱敏服务商摘要，并可主动请求 Lime 立即重发摘要
 - 新增 `Live2D` 渲染通路：Windows 通过 `Tauri/WebView`，macOS 通过 `WKWebView` 复用同一套本地 runtime
-- 支持本地 `Live2D` 模型资源、状态动作映射、点按动作映射，以及 `pet.live2d_action` 协议事件
+- 默认仅内置青柠；其他 `Live2D` 角色改为服务端模型目录 + 客户端本地安装
+- 支持 `Live2D` 模型目录、状态动作映射、点按动作映射，以及 `pet.live2d_action` 协议事件
 - 接收 Lime 发来的 `pet.show` / `pet.hide` / `pet.state_changed` / `pet.show_bubble`
 - GitHub Actions 质量校验与 tag 发布流程
 - Windows companion 预览壳：透明无边框、始终置顶、可拖拽、点击唤起、右键菜单、位置记忆与基础氛围动画
@@ -81,6 +82,7 @@ open "dist/Lime Pet.app"
 - 用 `local-whisper` 特性构建 `lime` 宿主
 - 自动重启本地 `lime` companion 监听进程
 - 重新启动 `LimePet`
+- 默认把桌宠模型目录指向 `http://127.0.0.1:8080` 的 `control-plane-svc`
 
 默认会从 `../aiclientproxy/lime` 查找主仓；如果你的主仓不在这个位置，可以先指定：
 
@@ -171,15 +173,68 @@ ws://127.0.0.1:45554/companion/pet
 ```bash
 open -a "Lime Pet.app" --args \
   --connect "ws://127.0.0.1:45554/companion/pet" \
+  --control-plane-base-url "http://127.0.0.1:8080" \
+  --tenant-id "tenant-0001" \
   --client-id "lime" \
   --protocol-version "1"
 ```
 
 详细消息格式见 [docs/protocol.md](docs/protocol.md)。
 
-角色资源库默认从 `LimePet/Resources/character-library.json` 打包进 app bundle；后续如果要扩展更多桌宠皮肤，优先沿用这套 JSON 描述 + Swift 渲染器 + 角色行为参数 + 配件槽位的组合，而不是直接把外观和节奏写死在视图里。
+## 模型安装
 
-当前仓库也支持把 `Live2D` 角色直接并入同一份角色库：角色条目只需要声明 `renderer: "live2d"` 并补齐 `live2d` 配置，桌宠就会切换到共享 runtime，而旧的 `sprite` 角色仍然保持可用。
+当前桌宠的事实源已经拆成两层：
+
+- 内置角色：`LimePet/Resources/character-library.json`，当前默认只保留青柠
+- 可安装角色：`LimePet/Resources/live2d-model-catalog.json`，同时会生成到 `limecore` 的 seed 文件
+
+macOS 客户端会优先尝试从：
+
+```text
+GET http://127.0.0.1:8080/api/v1/public/tenants/tenant-0001/client/model-catalog
+```
+
+拉取公开模型目录；拿不到时会回退到 bundle 内置的 catalog。模型文件实际安装到：
+
+```text
+~/Library/Application Support/LimePet/live2d-models
+```
+
+安装记录保存在：
+
+```text
+~/Library/Application Support/LimePet/model-installs.json
+```
+
+角色外观与动作配置仍然优先沿用 JSON 描述 + Swift 渲染器 / Live2D runtime 的组合，而不是把外观和节奏写死在视图里。
+
+如果要本地启动 `control-plane-svc` 做联调，可以在 `limecore` 仓库执行：
+
+```bash
+cd ~/Documents/dev/ai/limecloud/limecore
+SERVER_MODEL_ASSET_ROOT_DIR="/absolute/path/to/live2d-models/models" \
+go run ./services/control-plane-svc/cmd/server
+```
+
+推荐把你本地克隆的 `live2d-models/models` 目录挂进 `control-plane-svc`。这样公开模型目录返回的下载地址会指向当前本地服务，例如：
+
+```text
+http://127.0.0.1:8080/api/v1/public/assets/live2d/koharu/model.json
+```
+
+这条链路可以避开 `model.oml2d.com` 证书或 TLS 握手异常导致的安装失败。
+
+如果准备把模型正式迁到 Cloudflare 托管，不再依赖本地目录或 `model.oml2d.com`，统一在 `limecore` 仓库执行批量导入：
+
+```bash
+cd ~/Documents/dev/ai/limecloud/limecore
+npm run import:cloudflare:live2d -- \
+  --source-dir "/absolute/path/to/live2d-models" \
+  --bucket "<your-r2-bucket>" \
+  --asset-base-url "https://<your-asset-domain>"
+```
+
+这条命令会整批上传模型目录，并同步改写 `lime-pet` / `limecore` 的模型目录 seed，不需要后台逐个上传。
 
 ## 跨平台策略
 

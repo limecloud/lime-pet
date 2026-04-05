@@ -17,8 +17,7 @@ const sharedFiles = [
 ];
 
 const sharedDirectories = [
-  "live2d-runtime",
-  "live2d-models"
+  "live2d-runtime"
 ];
 
 fs.mkdirSync(outputDir, { recursive: true });

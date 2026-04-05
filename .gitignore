@@ -10,3 +10,7 @@ target/
 WindowsPet/src-tauri/gen/
 .playwright-mcp/
 live2d-runtime-*.png
+
+LimePet/Resources/live2d-models/*
+
+WindowsPet/public/live2d-models/*

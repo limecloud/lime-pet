@@ -82,12 +82,17 @@ struct LaunchConfiguration {
     let clientId: String
     let protocolVersion: Int
     let debugWindowSurface: Bool
+    let controlPlaneBaseURL: URL?
+    let tenantId: String
 
     static func current(arguments: [String] = CommandLine.arguments) -> LaunchConfiguration {
+        let environment = ProcessInfo.processInfo.environment
         var endpointString = defaultCompanionEndpoint
         var clientId = "lime"
         var protocolVersion = companionProtocolVersion
         var debugWindowSurface = false
+        var controlPlaneBaseURLString = environment["LIME_CONTROL_PLANE_BASE_URL"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        var tenantId = environment["LIME_TENANT_ID"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "tenant-0001"
 
         var iterator = arguments.dropFirst().makeIterator()
         while let argument = iterator.next() {
@@ -106,6 +111,14 @@ struct LaunchConfiguration {
                 }
             case "--debug-window-surface":
                 debugWindowSurface = true
+            case "--control-plane-base-url":
+                if let value = iterator.next() {
+                    controlPlaneBaseURLString = value
+                }
+            case "--tenant-id":
+                if let value = iterator.next(), !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    tenantId = value
+                }
             default:
                 continue
             }
@@ -115,7 +128,9 @@ struct LaunchConfiguration {
             endpoint: URL(string: endpointString),
             clientId: clientId,
             protocolVersion: protocolVersion,
-            debugWindowSurface: debugWindowSurface
+            debugWindowSurface: debugWindowSurface,
+            controlPlaneBaseURL: URL(string: controlPlaneBaseURLString),
+            tenantId: tenantId
         )
     }
 }

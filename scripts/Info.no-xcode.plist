@@ -16,6 +16,18 @@
 	<string>Lime Pet</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.lime.pet</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>lime-pet</string>
+				<string>lime</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleShortVersionString</key>
 	<string>0.3.5</string>
 	<key>CFBundleVersion</key>

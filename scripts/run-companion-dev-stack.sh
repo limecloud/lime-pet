@@ -28,6 +28,8 @@ LIME_LOG_PATH="${LIME_LOG_PATH:-/tmp/lime-companion-dev.log}"
 LIME_PID_PATH="${LIME_PID_PATH:-/tmp/lime-companion-dev.pid}"
 LIME_BUILD_JOBS="${LIME_BUILD_JOBS:-8}"
 LIME_HEALTH_URL="${LIME_HEALTH_URL:-http://127.0.0.1:3030/health}"
+LIME_CONTROL_PLANE_BASE_URL="${LIME_CONTROL_PLANE_BASE_URL:-http://127.0.0.1:8080}"
+LIME_TENANT_ID="${LIME_TENANT_ID:-tenant-0001}"
 
 if [[ ! -f "${LIME_MANIFEST_PATH}" ]]; then
   echo "未找到 lime 宿主工程：${LIME_MANIFEST_PATH}" >&2
@@ -137,9 +139,12 @@ fi
 record_lime_pid
 
 echo "[3/3] 启动 LimePet..."
+LIME_CONTROL_PLANE_BASE_URL="${LIME_CONTROL_PLANE_BASE_URL}" \
+LIME_TENANT_ID="${LIME_TENANT_ID}" \
 "${SCRIPT_DIR}/run-dev-app.sh" "$@"
 
 echo
 echo "Lime 宿主已就绪：${LIME_HEALTH_URL}"
 echo "Lime 宿主日志：${LIME_LOG_PATH}"
 echo "Lime 宿主 PID 文件：${LIME_PID_PATH}"
+echo "桌宠模型目录：${LIME_CONTROL_PLANE_BASE_URL}/api/v1/public/tenants/${LIME_TENANT_ID}/client/model-catalog"

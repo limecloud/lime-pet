@@ -1,151 +1,246 @@
-[
-  {
-    "id": "senko-normals",
-    "displayName": "仙狐 Senko",
-    "dir": "Senko_Normals",
-    "entry": "senko.model3.json",
-    "scale": 1.04
-  },
-  {
-    "id": "shizuku-classic",
-    "displayName": "雫 Classic",
-    "dir": "shizuku",
-    "entry": "shizuku.model.json",
-    "paths": [
-      "shizuku/shizuku.model.json",
-      "shizuku_pajama/index.json"
-    ],
-    "scale": 1.06,
-    "offsetY": 6,
-    "emotionMap": {
-      "neutral": 0,
-      "joy": 1,
-      "smirk": 2,
-      "surprise": 3,
-      "sadness": 3
+{
+  "excludeDirs": [
+    "tia",
+    "date",
+    "hallo",
+    "histoire"
+  ],
+  "directories": [
+    {
+      "dir": "Senko_Normals",
+      "id": "senko-normals",
+      "displayName": "仙狐 Senko",
+      "scale": 1.04
+    },
+    {
+      "dir": "shizuku",
+      "id": "shizuku-classic",
+      "displayName": "雫 Classic",
+      "paths": [
+        "shizuku/shizuku.model.json",
+        "shizuku_pajama/index.json",
+        "shizuku_48/index.json"
+      ],
+      "wardrobeLabels": [
+        "Classic",
+        "Pajama",
+        "48"
+      ],
+      "scale": 1.06,
+      "offsetY": 6,
+      "emotionMap": {
+        "neutral": 0,
+        "joy": 1,
+        "smirk": 2,
+        "surprise": 3,
+        "sadness": 3
+      }
+    },
+    {
+      "dir": "shizuku_pajama",
+      "hidden": true
+    },
+    {
+      "dir": "shizuku_48",
+      "hidden": true
+    },
+    {
+      "dir": "hibiki",
+      "id": "hibiki-stage",
+      "displayName": "响 Hibiki",
+      "emotionMap": {
+        "neutral": 0,
+        "joy": 1,
+        "surprise": 2,
+        "sadness": 3,
+        "smirk": 4,
+        "anger": 5
+      }
+    },
+    {
+      "dir": "haruto",
+      "id": "haruto-garden",
+      "displayName": "遥 Haruto"
+    },
+    {
+      "dir": "cat-black",
+      "id": "hijiki-black",
+      "displayName": "黑猫 Hijiki",
+      "offsetY": 8
+    },
+    {
+      "dir": "cat-white",
+      "id": "tororo-white",
+      "displayName": "白猫 Tororo",
+      "offsetY": 8
+    },
+    {
+      "dir": "HK416-1-normal",
+      "id": "hk416-normal",
+      "displayName": "HK416 常态",
+      "paths": [
+        "HK416-1-normal/model.json",
+        "HK416-2-normal/model.json",
+        "HK416-2-destroy/model.json"
+      ],
+      "wardrobeLabels": [
+        "常态 I",
+        "常态 II",
+        "破损"
+      ]
+    },
+    {
+      "dir": "HK416-2-normal",
+      "hidden": true
+    },
+    {
+      "dir": "HK416-2-destroy",
+      "id": "hk416-destroy",
+      "displayName": "HK416 破损"
+    },
+    {
+      "dir": "Kar98k-normal",
+      "id": "kar98k-guard",
+      "displayName": "Kar98k 守望"
+    },
+    {
+      "dir": "Pio",
+      "id": "pio-workshop",
+      "displayName": "Pio 工房",
+      "expandTexturesToWardrobes": true,
+      "expandTextureDirectoriesToWardrobes": true,
+      "textureWardrobeEntries": [
+        "Pio/model.json",
+        "potion-Maker-Pio/index.json"
+      ],
+      "paths": [
+        "Pio/model.json",
+        "potion-Maker-Pio/index.json"
+      ],
+      "scale": 0.95,
+      "offsetY": -1
+    },
+    {
+      "dir": "potion-Maker-Pio",
+      "hidden": true
+    },
+    {
+      "dir": "koharu",
+      "id": "koharu-dawn",
+      "displayName": "Koharu 晨光",
+      "scale": 0.95,
+      "offsetY": -1
+    },
+    {
+      "dir": "umaru",
+      "id": "umaru-snack",
+      "displayName": "Umaru"
+    },
+    {
+      "dir": "terisa",
+      "id": "terisa-starlight",
+      "displayName": "Terisa",
+      "scale": 0.95
+    },
+    {
+      "dir": "live_uu",
+      "id": "uu-live",
+      "displayName": "Live Uu",
+      "scale": 0.82,
+      "offsetY": 4
+    },
+    {
+      "dir": "wed_16",
+      "id": "wed16-blossom",
+      "displayName": "Wed 16",
+      "scale": 0.9
+    },
+    {
+      "dir": "mai",
+      "id": "mai-orbit",
+      "displayName": "Mai Orbit",
+      "scale": 1.03,
+      "offsetY": -2
+    },
+    {
+      "dir": "murakumo",
+      "id": "murakumo-mist",
+      "displayName": "Murakumo",
+      "scale": 1.06
+    },
+    {
+      "dir": "platelet",
+      "id": "platelet-mini",
+      "displayName": "Platelet Mini",
+      "paths": [
+        "platelet/model.json",
+        "platelet_2/model.json"
+      ],
+      "wardrobeLabels": [
+        "Mini",
+        "Classic"
+      ],
+      "scale": 1,
+      "offsetY": -1
+    },
+    {
+      "dir": "platelet_2",
+      "hidden": true
+    },
+    {
+      "dir": "rem",
+      "id": "rem-dream",
+      "displayName": "Rem Dream",
+      "paths": [
+        "rem/model.json",
+        "rem_2/model.json"
+      ],
+      "wardrobeLabels": [
+        "Dream",
+        "Classic"
+      ],
+      "scale": 0.95,
+      "offsetY": -1
+    },
+    {
+      "dir": "rem_2",
+      "hidden": true
+    },
+    {
+      "dir": "z16",
+      "id": "z16-light",
+      "displayName": "Z16 Light",
+      "scale": 0.95
+    },
+    {
+      "dir": "bilibili-22",
+      "displayName": "Bilibili 22",
+      "expandTextureCacheToWardrobes": true
+    },
+    {
+      "dir": "bilibili-33",
+      "displayName": "Bilibili 33",
+      "expandTextureCacheToWardrobes": true
+    },
+    {
+      "dir": "chino",
+      "displayName": "Chino"
+    },
+    {
+      "dir": "kobayaxi",
+      "displayName": "Kobayaxi"
+    },
+    {
+      "dir": "kp31",
+      "displayName": "KP31"
+    },
+    {
+      "dir": "uni",
+      "displayName": "Uni"
+    },
+    {
+      "dir": "xisitina",
+      "displayName": "Xisitina"
     }
-  },
-  {
-    "id": "hibiki-stage",
-    "displayName": "响 Hibiki",
-    "dir": "hibiki",
-    "entry": "hibiki.model.json",
-    "emotionMap": {
-      "neutral": 0,
-      "joy": 1,
-      "surprise": 2,
-      "sadness": 3,
-      "smirk": 4,
-      "anger": 5
-    }
-  },
-  {
-    "id": "haruto-garden",
-    "displayName": "遥 Haruto",
-    "dir": "haruto",
-    "entry": "haruto.model.json"
-  },
-  {
-    "id": "hijiki-black",
-    "displayName": "黑猫 Hijiki",
-    "dir": "cat-black",
-    "entry": "model.json",
-    "offsetY": 8
-  },
-  {
-    "id": "tororo-white",
-    "displayName": "白猫 Tororo",
-    "dir": "cat-white",
-    "entry": "model.json",
-    "offsetY": 8
-  },
-  {
-    "id": "hk416-normal",
-    "displayName": "HK416 常态",
-    "dir": "HK416-1-normal",
-    "entry": "model.json",
-    "paths": [
-      "HK416-1-normal/model.json",
-      "HK416-2-normal/model.json",
-      "HK416-2-destroy/model.json"
-    ]
-  },
-  {
-    "id": "hk416-destroy",
-    "displayName": "HK416 破损",
-    "dir": "HK416-2-destroy",
-    "entry": "model.json"
-  },
-  {
-    "id": "kar98k-guard",
-    "displayName": "Kar98k 守望",
-    "dir": "Kar98k-normal",
-    "entry": "model.json"
-  },
-  {
-    "id": "pio-workshop",
-    "displayName": "Pio 工房",
-    "dir": "Pio",
-    "entry": "model.json",
-    "paths": [
-      "Pio/model.json",
-      "potion-Maker-Pio/index.json"
-    ],
-    "scale": 0.95,
-    "offsetY": -1
-  },
-  {
-    "id": "koharu-dawn",
-    "displayName": "Koharu 晨光",
-    "dir": "koharu",
-    "entry": "model.json",
-    "scale": 0.95,
-    "offsetY": -1
-  },
-  {
-    "id": "mai-orbit",
-    "displayName": "Mai Orbit",
-    "dir": "mai",
-    "entry": "model.json",
-    "scale": 1.03,
-    "offsetY": -2
-  },
-  {
-    "id": "murakumo-mist",
-    "displayName": "Murakumo",
-    "dir": "murakumo",
-    "entry": "model.json",
-    "scale": 1.06
-  },
-  {
-    "id": "platelet-mini",
-    "displayName": "Platelet Mini",
-    "dir": "platelet",
-    "entry": "model.json",
-    "paths": [
-      "platelet/model.json",
-      "platelet_2/model.json"
-    ],
-    "scale": 1,
-    "offsetY": -1
-  },
-  {
-    "id": "rem-dream",
-    "displayName": "Rem Dream",
-    "dir": "rem",
-    "entry": "model.json",
-    "paths": [
-      "rem/model.json",
-      "rem_2/model.json"
-    ],
-    "scale": 0.95,
-    "offsetY": -1
-  },
-  {
-    "id": "z16-light",
-    "displayName": "Z16 Light",
-    "dir": "z16",
-    "entry": "z16.model.json",
-    "scale": 0.95
-  }
-]
+  ]
+}

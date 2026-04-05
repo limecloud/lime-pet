@@ -10,7 +10,7 @@ private func petLive2DDebugLog(_ message: String) {
     if let data = line.data(using: .utf8) {
         if FileManager.default.fileExists(atPath: url.path) {
             if let handle = try? FileHandle(forWritingTo: url) {
-                try? handle.seekToEnd()
+                _ = try? handle.seekToEnd()
                 try? handle.write(contentsOf: data)
                 try? handle.close()
             }
@@ -681,6 +681,13 @@ struct PetLive2DHostView: NSViewRepresentable {
                 return logicalPath
             }
 
+            if ResourceSchemeHandler.resourceExists(
+                relativePath: logicalPath,
+                in: PetModelStorage.resourceRoots(bundle: bundle)
+            ) {
+                return logicalPath
+            }
+
             let nsLogicalPath = logicalPath as NSString
             let fileName = nsLogicalPath.lastPathComponent as NSString
             let resourceName = fileName.deletingPathExtension
@@ -746,10 +753,10 @@ struct PetLive2DHostView: NSViewRepresentable {
         private static let resourceHost = "bundle"
 
         final class ResourceSchemeHandler: NSObject, WKURLSchemeHandler {
-            private let rootURL: URL
+            private let rootURLs: [URL]
 
             init(bundle: Bundle) {
-                self.rootURL = bundle.bundleURL.standardizedFileURL
+                self.rootURLs = PetModelStorage.resourceRoots(bundle: bundle)
                 super.init()
             }
 
@@ -764,13 +771,8 @@ struct PetLive2DHostView: NSViewRepresentable {
                 }
 
                 let relativePath = requestURL.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-                let targetURL = rootURL.appendingPathComponent(relativePath).standardizedFileURL
-                guard targetURL.path.hasPrefix(rootURL.path) else {
-                    fail(urlSchemeTask, code: NSURLErrorNoPermissionsToReadFile, description: "Live2D resource outside bundle")
-                    return
-                }
-
-                guard let data = try? Data(contentsOf: targetURL) else {
+                guard let targetURL = Self.resolve(relativePath: relativePath, in: rootURLs),
+                      let data = try? Data(contentsOf: targetURL) else {
                     fail(urlSchemeTask, code: NSURLErrorFileDoesNotExist, description: "Missing Live2D resource: \(relativePath)")
                     return
                 }
@@ -820,6 +822,23 @@ struct PetLive2DHostView: NSViewRepresentable {
                 default:
                     return nil
                 }
+            }
+
+            static func resourceExists(relativePath: String, in rootURLs: [URL]) -> Bool {
+                resolve(relativePath: relativePath, in: rootURLs) != nil
+            }
+
+            private static func resolve(relativePath: String, in rootURLs: [URL]) -> URL? {
+                for rootURL in rootURLs {
+                    let targetURL = PetURLBuilder.appendingPath(relativePath, to: rootURL).standardizedFileURL
+                    guard targetURL.path.hasPrefix(rootURL.path) else {
+                        continue
+                    }
+                    if FileManager.default.fileExists(atPath: targetURL.path) {
+                        return targetURL
+                    }
+                }
+                return nil
             }
         }
     }
