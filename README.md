@@ -108,16 +108,16 @@ LIME_ROOT="/absolute/path/to/lime" ./scripts/run-companion-dev-stack.sh
 本地生成 release bundle：
 
 ```bash
-./scripts/package-release.sh --version "0.3.5" --build-number "1"
+./scripts/package-release.sh --version "0.4.0" --build-number "1"
 ```
 
 产物默认会按当前宿主架构输出，例如 Apple Silicon 机器上会得到：
 
 ```text
-dist/release/LimePet-v0.3.5-macos-arm64.dmg
-dist/release/LimePet-v0.3.5-macos-arm64.dmg.sha256
-dist/release/LimePet-v0.3.5-macos-arm64-unsigned.zip
-dist/release/LimePet-v0.3.5-macos-arm64-unsigned.zip.sha256
+dist/release/LimePet-v0.4.0-macos-arm64.dmg
+dist/release/LimePet-v0.4.0-macos-arm64.dmg.sha256
+dist/release/LimePet-v0.4.0-macos-arm64-unsigned.zip
+dist/release/LimePet-v0.4.0-macos-arm64-unsigned.zip.sha256
 ```
 
 GitHub Actions 发布策略：
