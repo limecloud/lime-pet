@@ -24,7 +24,6 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>lime-pet</string>
-				<string>lime</string>
 			</array>
 		</dict>
 	</array>

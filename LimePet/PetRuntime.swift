@@ -11,7 +11,7 @@ private struct PetInstallDeepLink {
     let shouldInstall: Bool
 
     init?(url: URL) {
-        let supportedSchemes: Set<String> = ["lime", "lime-pet"]
+        let supportedSchemes: Set<String> = ["lime-pet"]
         guard let scheme = url.scheme?.lowercased(), supportedSchemes.contains(scheme) else { return nil }
         guard url.host?.lowercased() == "pet" else { return nil }
 
